@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cartel - תגובת נהג</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .reply-mode-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1.25rem 0;
+      }
+      .reply-mode-btn {
+        padding: 1rem 0.75rem;
+        border-radius: 10px;
+        border: 2px solid var(--border);
+        background: white;
+        cursor: pointer;
+        font-family: inherit;
+        text-align: center;
+        transition: border-color 0.2s, background 0.2s;
+      }
+      .reply-mode-btn:hover { border-color: var(--primary); background: #eff6ff; }
+      .reply-mode-btn .mode-icon { font-size: 1.8rem; display: block; margin-bottom: 0.4rem; }
+      .reply-mode-btn .mode-title { font-weight: 700; font-size: 0.9rem; display: block; }
+      .reply-mode-btn .mode-desc  { font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.2rem; line-height: 1.4; }
+      .reply-mode-btn.public-btn  { border-color: #fbbf24; }
+      .reply-mode-btn.public-btn:hover { background: #fffbeb; }
+      .msg-bubble {
+        background: #f1f5f9;
+        border-right: 4px solid var(--primary);
+        border-radius: 8px;
+        padding: 0.85rem 1rem;
+        margin: 1rem 0;
+        font-size: 0.92rem;
+        line-height: 1.6;
+      }
+      .msg-bubble .bubble-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.3rem;
+      }
+      .msg-image { margin-top: 0.75rem; }
+      .msg-image img { max-width: 100%; border-radius: 6px; }
+      .wa-reply-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 0.85rem;
+        background: #25D366;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.2s;
+      }
+      .wa-reply-btn:hover { background: #1ebe5c; }
+      #anonSection { margin-top: 1rem; }
+      .sender-phone-box {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        color: #1e40af;
+        direction: ltr;
+        text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-inner">
+        <div>
+          <h1>Cartel</h1>
+          <p>תגובת נהג</p>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="card" id="loadingCard">
+        <p class="subtitle" style="text-align:center">טוען...</p>
+      </div>
+
+      <div class="card" id="mainCard" style="display:none">
+        <h2>קיבלת הודעה לגבי רכבך</h2>
+
+        <div class="msg-bubble" id="msgBubble">
+          <div class="bubble-label">ההודעה שנשלחה</div>
+          <div id="msgText"></div>
+          <div id="msgImageWrap" class="msg-image" style="display:none">
+            <img id="msgImage" src="" alt="תמונה מצורפת" />
+          </div>
+        </div>
+
+        <p class="subtitle">כיצד ברצונך להגיב?</p>
+
+        <div class="reply-mode-grid">
+          <button class="reply-mode-btn public-btn" id="publicBtn">
+            <span class="mode-icon">📞</span>
+            <span class="mode-title">בפומבי</span>
+            <span class="mode-desc">מספר הטלפון שלך יוצג לשולח</span>
+          </button>
+          <button class="reply-mode-btn" id="anonBtn">
+            <span class="mode-icon">🎭</span>
+            <span class="mode-title">אנונימי</span>
+            <span class="mode-desc">מספרך נשאר מוסתר</span>
+          </button>
+        </div>
+
+        <!-- Public reply section -->
+        <div id="publicSection" style="display:none">
+          <div class="alert success" style="display:block;margin-bottom:1rem" id="publicInfo"></div>
+          <div id="senderPhoneBox" class="sender-phone-box" style="display:none"></div>
+          <a id="waPublicLink" href="#" class="wa-reply-btn" target="_blank" rel="noopener noreferrer" style="display:none">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.554 4.103 1.523 5.828L.057 23.5l5.797-1.522A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.002-1.371l-.359-.214-3.721.976.993-3.63-.233-.373A9.818 9.818 0 1 1 12 21.818z"/>
+            </svg>
+            פתח וואטסאפ עם השולח
+          </a>
+          <p class="field-hint" id="noContactMsg" style="display:none;margin-top:0.5rem;text-align:center"></p>
+        </div>
+
+        <!-- Anonymous reply section -->
+        <div id="anonSection" style="display:none">
+          <form id="anonForm">
+            <div class="form-group">
+              <label for="anonMsg">הודעתך לשולח</label>
+              <textarea id="anonMsg" placeholder="כתוב את תגובתך כאן..." maxlength="300" required></textarea>
+              <p class="char-count"><span id="anonCharCount">0</span>/300</p>
+            </div>
+            <button type="submit" id="anonSubmitBtn">שלח תגובה אנונימית</button>
+          </form>
+          <div id="anonAlertBox" class="alert"></div>
+        </div>
+      </div>
+
+      <div class="card" id="errorCard" style="display:none">
+        <div class="alert error" style="display:block">
+          <strong id="errorMsg"></strong>
+        </div>
+        <a href="index.html" class="nav-link">&larr; חזרה לדף הבית</a>
+      </div>
+    </main>
+
+    <footer>Cartel &bull; <a href="terms.html" style="color:inherit">תנאי שימוש</a></footer>
+
+    <script src="/admin-bar.js"></script>
+    <script>
+      const token = new URLSearchParams(window.location.search).get('token');
+
+      async function load() {
+        if (!token) { showError('קישור לא תקין'); return; }
+        try {
+          const res  = await fetch('/api/reply?token=' + encodeURIComponent(token));
+          const data = await res.json();
+          if (!res.ok) { showError(data.error); return; }
+          render(data);
+        } catch {
+          showError('שגיאת רשת. נסה לרענן את הדף.');
+        }
+      }
+
+      function render(data) {
+        document.getElementById('loadingCard').style.display = 'none';
+        document.getElementById('mainCard').style.display   = 'block';
+        document.getElementById('msgText').textContent      = data.message;
+
+        if (data.imageFile) {
+          document.getElementById('msgImageWrap').style.display = 'block';
+          document.getElementById('msgImage').src = '/images/' + data.imageFile;
+        }
+
+        // Public reply button
+        document.getElementById('publicBtn').addEventListener('click', () => {
+          document.getElementById('anonSection').style.display   = 'none';
+          document.getElementById('publicSection').style.display = 'block';
+
+          if (data.revealPhone && data.senderPhone) {
+            const phone = data.senderPhone;
+            const waNum = phone.replace(/\D/g, '');
+            document.getElementById('publicInfo').textContent =
+              'השולח אישר שאפשר לפנות אליו ישירות.';
+            document.getElementById('senderPhoneBox').style.display = 'block';
+            document.getElementById('senderPhoneBox').textContent = phone;
+            document.getElementById('waPublicLink').style.display = 'flex';
+            document.getElementById('waPublicLink').href = `https://wa.me/${waNum}`;
+          } else {
+            document.getElementById('publicInfo').textContent =
+              'השולח לא הסכים לחשיפת מספר הטלפון שלו.';
+            document.getElementById('noContactMsg').style.display = 'block';
+            document.getElementById('noContactMsg').textContent =
+              'לא ניתן לפנות לשולח ישירות — אפשרי רק לשלוח תגובה אנונימית';
+          }
+        });
+
+        // Anonymous reply button
+        document.getElementById('anonBtn').addEventListener('click', () => {
+          document.getElementById('publicSection').style.display = 'none';
+          document.getElementById('anonSection').style.display   = 'block';
+        });
+      }
+
+      // Anonymous form
+      document.getElementById('anonMsg').addEventListener('input', function() {
+        document.getElementById('anonCharCount').textContent = this.value.length;
+      });
+
+      document.getElementById('anonForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn      = document.getElementById('anonSubmitBtn');
+        const alertBox = document.getElementById('anonAlertBox');
+        btn.disabled      = true;
+        btn.textContent   = 'שולח...';
+        alertBox.className = 'alert';
+        alertBox.textContent = '';
+
+        try {
+          const res  = await fetch('/api/reply?token=' + encodeURIComponent(token), {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ message: document.getElementById('anonMsg').value.trim() }),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            alertBox.className  = 'alert success';
+            alertBox.textContent = data.message;
+            document.getElementById('anonForm').style.display = 'none';
+          } else {
+            alertBox.className  = 'alert error';
+            alertBox.textContent = data.error;
+          }
+        } catch {
+          alertBox.className  = 'alert error';
+          alertBox.textContent = 'שגיאת רשת.';
+        }
+        btn.disabled    = false;
+        btn.textContent = 'שלח תגובה אנונימית';
+      });
+
+      function showError(msg) {
+        document.getElementById('loadingCard').style.display = 'none';
+        document.getElementById('errorCard').style.display   = 'block';
+        document.getElementById('errorMsg').textContent      = msg;
+      }
+
+      load();
+    </script>
+  </body>
+</html>

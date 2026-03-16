@@ -1,0 +1,271 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #f1f5f9;
+  --card:       #ffffff;
+  --text:       #0f172a;
+  --muted:      #64748b;
+  --border:     #e2e8f0;
+  --primary:    #2563eb;
+  --danger:     #dc2626;
+  --danger-bg:  #fee2e2;
+  --header-bg:  #1e3a5f;
+  --radius:     10px;
+  --font:       'Segoe UI', Arial, sans-serif;
+}
+
+body {
+  font-family: var(--font);
+  background:  var(--bg);
+  color:       var(--text);
+  direction:   rtl;
+  min-height:  100vh;
+}
+
+/* ── Login ───────────────────────────────────────────────────────── */
+.login-page {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  min-height:      100vh;
+  background:      var(--header-bg);
+}
+
+.login-card {
+  background:    var(--card);
+  border-radius: var(--radius);
+  padding:       2.5rem 2rem;
+  width:         100%;
+  max-width:     380px;
+  box-shadow:    0 8px 40px rgba(0, 0, 0, 0.25);
+}
+
+.login-brand {
+  text-align:    center;
+  margin-bottom: 2rem;
+}
+
+.login-brand h1 { font-size: 1.9rem; color: var(--primary); }
+.login-brand p  { color: var(--muted); margin-top: 0.25rem; font-size: 0.9rem; }
+
+.form-group { margin-bottom: 1.1rem; }
+
+label {
+  display:       block;
+  font-size:     0.9rem;
+  font-weight:   600;
+  margin-bottom: 0.35rem;
+}
+
+input[type='text'],
+input[type='password'] {
+  width:       100%;
+  padding:     0.7rem 0.9rem;
+  border:      2px solid var(--border);
+  border-radius: 7px;
+  font-size:   1rem;
+  font-family: var(--font);
+  direction:   rtl;
+  transition:  border-color 0.2s;
+  color:       var(--text);
+}
+
+input:focus { outline: none; border-color: var(--primary); }
+
+button[type='submit'] {
+  width:         100%;
+  padding:       0.8rem;
+  background:    var(--primary);
+  color:         white;
+  border:        none;
+  border-radius: 7px;
+  font-size:     1rem;
+  font-weight:   700;
+  font-family:   var(--font);
+  cursor:        pointer;
+  margin-top:    0.5rem;
+  transition:    background 0.2s;
+}
+
+button[type='submit']:hover    { background: #1d4ed8; }
+button[type='submit']:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.login-error {
+  margin-top: 0.75rem;
+  color:      var(--danger);
+  font-size:  0.88rem;
+  text-align: center;
+  min-height: 1.2em;
+}
+
+/* ── Header ──────────────────────────────────────────────────────── */
+.admin-header {
+  display:     flex;
+  align-items: center;
+  gap:         1rem;
+  background:  var(--header-bg);
+  color:       white;
+  padding:     0.85rem 1.5rem;
+  position:    sticky;
+  top:         0;
+  z-index:     100;
+  box-shadow:  0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.header-brand {
+  display:       flex;
+  flex-direction: column;
+  line-height:   1.2;
+}
+
+.header-brand strong { font-size: 1.05rem; }
+.header-brand span   { font-size: 0.72rem; opacity: 0.7; }
+
+.header-stats {
+  flex:            1;
+  display:         flex;
+  justify-content: center;
+  gap:             0.6rem;
+  flex-wrap:       wrap;
+}
+
+.stat-badge {
+  background:    rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  padding:       0.28rem 0.8rem;
+  font-size:     0.83rem;
+  font-weight:   600;
+}
+
+.btn-logout {
+  background:    rgba(255, 255, 255, 0.12);
+  color:         white;
+  border:        1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  padding:       0.38rem 0.9rem;
+  font-size:     0.85rem;
+  font-family:   var(--font);
+  cursor:        pointer;
+  white-space:   nowrap;
+  transition:    background 0.2s;
+}
+
+.btn-logout:hover { background: rgba(255, 255, 255, 0.22); }
+
+/* ── Main layout ─────────────────────────────────────────────────── */
+.admin-main {
+  padding:        1.5rem;
+  max-width:      1100px;
+  margin:         0 auto;
+  display:        flex;
+  flex-direction: column;
+  gap:            1.5rem;
+}
+
+/* ── Section ─────────────────────────────────────────────────────── */
+.admin-section {
+  background:    var(--card);
+  border-radius: var(--radius);
+  box-shadow:    0 2px 12px rgba(0, 0, 0, 0.06);
+  overflow:      hidden;
+}
+
+.section-head {
+  display:     flex;
+  align-items: center;
+  gap:         0.6rem;
+  padding:     1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-head h2 { font-size: 0.95rem; font-weight: 700; }
+
+.section-count {
+  background:    #dbeafe;
+  color:         var(--primary);
+  border-radius: 999px;
+  padding:       0.13rem 0.55rem;
+  font-size:     0.75rem;
+  font-weight:   700;
+}
+
+/* ── Table ───────────────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; }
+
+table {
+  width:           100%;
+  border-collapse: collapse;
+  font-size:       0.875rem;
+}
+
+thead tr {
+  background:    #f8fafc;
+  border-bottom: 2px solid var(--border);
+}
+
+th {
+  padding:        0.6rem 1rem;
+  text-align:     right;
+  font-size:      0.75rem;
+  font-weight:    700;
+  color:          var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space:    nowrap;
+}
+
+td {
+  padding:       0.72rem 1rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover         { background: #f8fafc; }
+
+.td-plate {
+  font-weight:    700;
+  font-size:      1rem;
+  letter-spacing: 1.5px;
+  direction:      ltr;
+  text-align:     right;
+}
+
+.td-msg {
+  max-width:     300px;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
+  cursor:        default;
+}
+
+.td-empty {
+  text-align: center;
+  color:      var(--muted);
+  padding:    2rem;
+  font-size:  0.9rem;
+}
+
+/* ── Delete button ───────────────────────────────────────────────── */
+.btn-del {
+  padding:       0.32rem 0.7rem;
+  background:    var(--danger-bg);
+  color:         var(--danger);
+  border:        1px solid #fca5a5;
+  border-radius: 5px;
+  font-size:     0.8rem;
+  font-family:   var(--font);
+  font-weight:   600;
+  cursor:        pointer;
+  white-space:   nowrap;
+  transition:    background 0.15s;
+}
+
+.btn-del:hover { background: #fecaca; }
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .admin-main         { padding: 1rem 0.75rem; }
+  .admin-header       { padding: 0.75rem 1rem; }
+  .header-stats       { display: none; }
+}

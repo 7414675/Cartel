@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cartel - הרשמה</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <div class="header-inner">
+        <div>
+          <h1>Cartel</h1>
+          <p>הרשמה לשירות</p>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="card">
+        <h2>הרשמה</h2>
+        <p class="subtitle">
+          הרשמה מאפשרת לך לשלוח הודעות לנהגים.
+          אם ברצונך גם לקבל הודעות על הרכב שלך, הוסף את מספר הלוחית.
+          מספר הטלפון שלך לא יוצג לאיש ללא הסכמתך.
+        </p>
+
+        <!-- Step 1: Registration form -->
+        <form id="step1Form">
+          <div class="form-group">
+            <label for="name">
+              שם מלא
+              <span class="optional-tag">אופציונלי</span>
+            </label>
+            <input type="text" id="name" name="name" placeholder="ישראל ישראלי"
+              maxlength="50" autocomplete="name" />
+          </div>
+
+          <div class="form-group">
+            <label for="phone">מספר טלפון סלולרי</label>
+            <input type="tel" id="phone" name="phone" placeholder="050-000-0000"
+              maxlength="15" autocomplete="tel" dir="ltr" style="text-align: right" required />
+            <p class="field-hint">ישמש לאימות ולקבלת הודעות. לא יוצג ללא הסכמתך.</p>
+          </div>
+
+          <div class="form-group">
+            <label for="plate">
+              מספר לוחית רישוי
+              <span class="optional-tag">אופציונלי</span>
+            </label>
+            <input type="text" id="plate" name="plate" class="plate-input"
+              placeholder="123-45-678" maxlength="11" autocomplete="off"
+              inputmode="numeric" />
+            <p class="field-hint">מלא רק אם ברצונך לקבל הודעות על הרכב שלך</p>
+          </div>
+
+          <p class="tos-note">
+            בהרשמה אתה מאשר את
+            <a href="terms.html" target="_blank">תנאי השימוש ומדיניות הפרטיות</a>
+            ומסכים לקבלת עדכונים שיווקיים
+          </p>
+
+          <button type="submit" id="step1Btn">קבל קוד אימות</button>
+        </form>
+
+        <!-- Step 2: OTP verification -->
+        <div id="step2" style="display:none">
+          <p class="subtitle" id="otpSubtitle"></p>
+          <form id="step2Form">
+            <div class="form-group">
+              <label for="otpInput">קוד אימות</label>
+              <input type="text" id="otpInput" class="otp-input" placeholder="000000"
+                maxlength="6" inputmode="numeric" autocomplete="one-time-code"
+                dir="ltr" style="text-align:center" required />
+              <p class="field-hint">הכנס את הקוד שנשלח למספר הטלפון שלך</p>
+            </div>
+            <button type="submit" id="step2Btn">אמת וסיים הרשמה</button>
+          </form>
+          <button type="button" id="backBtn" class="auth-toggle-btn" style="margin-top:0.75rem">
+            &larr; חזרה
+          </button>
+        </div>
+
+        <div id="alertBox" class="alert"></div>
+
+        <a href="index.html" class="nav-link">&larr; חזרה לשליחת הודעה</a>
+      </div>
+    </main>
+
+    <footer>מספר הטלפון שלך מוגן ולא יוצג ללא הסכמתך</footer>
+
+    <script src="/admin-bar.js"></script>
+    <script>
+      const plateInput = document.getElementById('plate');
+      const alertBox   = document.getElementById('alertBox');
+      let pendingPhone = '';
+
+      function formatPlate(digits) {
+        if (digits.length <= 7) {
+          if (digits.length > 5) return digits.slice(0,2) + '-' + digits.slice(2,5) + '-' + digits.slice(5);
+          if (digits.length > 2) return digits.slice(0,2) + '-' + digits.slice(2);
+          return digits;
+        } else {
+          if (digits.length > 5) return digits.slice(0,3) + '-' + digits.slice(3,5) + '-' + digits.slice(5);
+          if (digits.length > 3) return digits.slice(0,3) + '-' + digits.slice(3);
+          return digits;
+        }
+      }
+
+      plateInput.addEventListener('input', () => {
+        const digits = plateInput.value.replace(/[^0-9]/g, '').slice(0, 8);
+        plateInput.value = formatPlate(digits);
+      });
+
+      // ── Step 1: submit registration ───────────────────────────────
+      document.getElementById('step1Form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        alertBox.className   = 'alert';
+        alertBox.textContent = '';
+        const btn = document.getElementById('step1Btn');
+        btn.disabled = true; btn.textContent = 'שולח...';
+
+        try {
+          const res  = await fetch('/api/register', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({
+              phone: document.getElementById('phone').value,
+              name:  document.getElementById('name').value,
+              plate: plateInput.value,
+            }),
+          });
+          const data = await res.json();
+
+          if (res.ok && data.requiresOtp) {
+            pendingPhone = data.phone;
+            document.getElementById('step1Form').style.display = 'none';
+            document.getElementById('step2').style.display     = 'block';
+            document.getElementById('otpSubtitle').textContent =
+              `קוד אימות נשלח למספר ${data.phone}. הכנס אותו כאן:`;
+            document.getElementById('otpInput').focus();
+          } else if (!res.ok) {
+            alertBox.className   = 'alert error';
+            alertBox.textContent = data.error;
+          }
+        } catch {
+          alertBox.className   = 'alert error';
+          alertBox.textContent = 'שגיאת רשת. בדוק חיבור לאינטרנט ונסה שוב.';
+        }
+
+        btn.disabled = false; btn.textContent = 'קבל קוד אימות';
+      });
+
+      // ── Step 2: OTP verify ────────────────────────────────────────
+      document.getElementById('step2Form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        alertBox.className   = 'alert';
+        alertBox.textContent = '';
+        const btn = document.getElementById('step2Btn');
+        btn.disabled = true; btn.textContent = 'מאמת...';
+
+        try {
+          const res  = await fetch('/api/otp/verify', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({
+              phone: pendingPhone,
+              otp:   document.getElementById('otpInput').value.trim(),
+            }),
+          });
+          const data = await res.json();
+
+          if (res.ok) {
+            alertBox.className   = 'alert success';
+            alertBox.textContent = data.message;
+            document.getElementById('step2').style.display = 'none';
+            setTimeout(() => { window.location.href = '/'; }, 2000);
+          } else {
+            alertBox.className   = 'alert error';
+            alertBox.textContent = data.error;
+          }
+        } catch {
+          alertBox.className   = 'alert error';
+          alertBox.textContent = 'שגיאת רשת. בדוק חיבור לאינטרנט ונסה שוב.';
+        }
+
+        btn.disabled = false; btn.textContent = 'אמת וסיים הרשמה';
+      });
+
+      document.getElementById('backBtn').addEventListener('click', () => {
+        document.getElementById('step2').style.display     = 'none';
+        document.getElementById('step1Form').style.display = 'block';
+        alertBox.className   = 'alert';
+        alertBox.textContent = '';
+      });
+    </script>
+  </body>
+</html>
