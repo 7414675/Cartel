@@ -117,7 +117,7 @@ app.post('/admin/api/login', (req, res) => {
     const sid = crypto.randomBytes(32).toString('hex');
     adminSessions.add(sid);
     res.setHeader('Set-Cookie',
-      `adminSession=${sid}; HttpOnly; Path=/admin; SameSite=Strict; Max-Age=2592000`);
+      `adminSession=${sid}; HttpOnly; Path=/; SameSite=Strict; Max-Age=2592000`);
     return res.json({ success: true });
   }
   res.status(401).json({ error: 'שם משתמש או סיסמה שגויים' });
@@ -125,7 +125,7 @@ app.post('/admin/api/login', (req, res) => {
 
 app.post('/admin/api/logout', (req, res) => {
   adminSessions.delete(parseCookies(req).adminSession);
-  res.setHeader('Set-Cookie', 'adminSession=; HttpOnly; Path=/admin; Max-Age=0');
+  res.setHeader('Set-Cookie', 'adminSession=; HttpOnly; Path=/; Max-Age=0');
   res.json({ success: true });
 });
 
