@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cartel - הגדרות פרופיל</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <div class="header-inner">
+        <div>
+          <h1><a href="/" style="color:inherit;text-decoration:none">Cartel</a></h1>
+          <p>text the plate</p>
+        </div>
+        <a href="inbox.html" class="admin-badge">📬 תיבת הדואר</a>
+      </div>
+    </header>
+
+    <main>
+      <div class="card">
+
+        <!-- Not logged in -->
+        <div id="authState" style="display:none">
+          <div class="auth-gate">
+            <p class="auth-gate-msg">עליך להיות מחובר כדי לערוך את הפרופיל</p>
+            <a href="/" class="btn-register">חזרה לדף הבית &larr;</a>
+          </div>
+        </div>
+
+        <!-- Profile form -->
+        <div id="profileState" style="display:none">
+          <h2>הגדרות פרופיל</h2>
+          <p class="subtitle" style="margin-top:0.4rem;margin-bottom:1.5rem">עדכן את הפרטים האישיים שלך</p>
+
+          <form id="profileForm">
+            <div class="form-group">
+              <label for="nameInput">שם מלא</label>
+              <input type="text" id="nameInput" placeholder="ישראל ישראלי"
+                maxlength="50" autocomplete="name" />
+            </div>
+
+            <div class="form-group">
+              <label for="phoneDisplay">מספר טלפון</label>
+              <input type="tel" id="phoneDisplay" dir="ltr" style="text-align:right;opacity:0.65" disabled />
+              <p class="field-hint">לשינוי מספר טלפון יש להירשם מחדש</p>
+            </div>
+
+            <div class="form-group">
+              <label for="plateInput">
+                מספר לוחית רישוי
+                <span class="optional-tag">אופציונלי</span>
+              </label>
+              <input type="text" id="plateInput" class="plate-input"
+                placeholder="123-45-678" maxlength="11" autocomplete="off" inputmode="numeric" />
+              <p class="field-hint">עדכן אם קנית רכב חדש. השאר ריק אם אינך רוצה לקבל הודעות.</p>
+            </div>
+
+            <button type="submit" id="saveBtn">שמור שינויים</button>
+          </form>
+
+          <div id="alertBox" class="alert"></div>
+
+          <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border)">
+            <p class="subtitle" style="margin-bottom:0.75rem">פעולות נוספות</p>
+            <button type="button" id="logoutBtn" class="logout-inline"
+              style="font-size:0.9rem;padding:0.5rem 1rem">
+              התנתק מהחשבון
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <footer>
+      <a href="/" style="color:inherit">&larr; חזרה לדף הראשי</a>
+      &nbsp;&bull;&nbsp;
+      <a href="terms.html" style="color:inherit">תנאי שימוש</a>
+    </footer>
+
+    <script src="/admin-bar.js"></script>
+    <script>
+      const alertBox   = document.getElementById('alertBox');
+      const plateInput = document.getElementById('plateInput');
+
+      function formatPlate(digits) {
+        if (digits.length <= 7) {
+          if (digits.length > 5) return digits.slice(0,2) + '-' + digits.slice(2,5) + '-' + digits.slice(5);
+          if (digits.length > 2) return digits.slice(0,2) + '-' + digits.slice(2);
+          return digits;
+        } else {
+          if (digits.length > 5) return digits.slice(0,3) + '-' + digits.slice(3,5) + '-' + digits.slice(5);
+          if (digits.length > 3) return digits.slice(0,3) + '-' + digits.slice(3);
+          return digits;
+        }
+      }
+
+      plateInput.addEventListener('input', () => {
+        const digits = plateInput.value.replace(/[^0-9]/g, '').slice(0, 8);
+        plateInput.value = formatPlate(digits);
+      });
+
+      async function init() {
+        try {
+          const res = await fetch('/api/profile');
+          if (!res.ok) { document.getElementById('authState').style.display = 'block'; return; }
+          const data = await res.json();
+          document.getElementById('profileState').style.display = 'block';
+          document.getElementById('nameInput').value    = data.name  || '';
+          document.getElementById('phoneDisplay').value = data.phone || '';
+          if (data.plates && data.plates.length > 0) {
+            const p = data.plates[0];
+            let fmt = p;
+            if (p.length === 7) fmt = p.slice(0,2) + '-' + p.slice(2,5) + '-' + p.slice(5);
+            else if (p.length === 8) fmt = p.slice(0,3) + '-' + p.slice(3,5) + '-' + p.slice(5);
+            plateInput.value = fmt;
+          }
+        } catch {
+          document.getElementById('authState').style.display = 'block';
+        }
+      }
+
+      document.getElementById('profileForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        alertBox.className   = 'alert';
+        alertBox.textContent = '';
+        const btn = document.getElementById('saveBtn');
+        btn.disabled = true; btn.textContent = 'שומר...';
+        try {
+          const res = await fetch('/api/profile', {
+            method:  'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({
+              name:  document.getElementById('nameInput').value.trim(),
+              plate: plateInput.value,
+            }),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            alertBox.className   = 'alert success';
+            alertBox.textContent = 'הפרטים עודכנו בהצלחה!';
+          } else {
+            alertBox.className   = 'alert error';
+            alertBox.textContent = data.error;
+          }
+        } catch {
+          alertBox.className   = 'alert error';
+          alertBox.textContent = 'שגיאת רשת. נסה שוב.';
+        }
+        btn.disabled = false; btn.textContent = 'שמור שינויים';
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', async () => {
+        await fetch('/api/logout', { method: 'POST' });
+        window.location.href = '/';
+      });
+
+      init();
+    </script>
+  </body>
+</html>
