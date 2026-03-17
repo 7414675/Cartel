@@ -22,7 +22,7 @@
         text-align: center;
         transition: border-color 0.2s, background 0.2s;
       }
-      .reply-mode-btn:hover { border-color: var(--primary); background: #eff6ff; }
+      .reply-mode-btn:hover { border-color: var(--primary); background: #fff7ed; }
       .reply-mode-btn .mode-icon { font-size: 1.8rem; display: block; margin-bottom: 0.4rem; }
       .reply-mode-btn .mode-title { font-weight: 700; font-size: 0.9rem; display: block; }
       .reply-mode-btn .mode-desc  { font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.2rem; line-height: 1.4; }
@@ -68,16 +68,45 @@
       .wa-reply-btn:hover { background: #1ebe5c; }
       #anonSection { margin-top: 1rem; }
       .sender-phone-box {
-        background: #eff6ff;
-        border: 1px solid #bfdbfe;
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
         border-radius: 8px;
         padding: 0.75rem 1rem;
         margin-bottom: 1rem;
         font-size: 0.9rem;
-        color: #1e40af;
+        color: #9a3412;
         direction: ltr;
         text-align: right;
       }
+      .reply-sub-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0;
+      }
+      .reply-sub-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0.9rem 0.5rem;
+        border-radius: 10px;
+        border: 2px solid var(--border);
+        background: white;
+        cursor: pointer;
+        font-family: inherit;
+        text-align: center;
+        text-decoration: none;
+        transition: border-color 0.2s, background 0.2s;
+        gap: 0.25rem;
+      }
+      .reply-sub-btn:hover { border-color: var(--primary); background: #fff7ed; }
+      .reply-sub-btn .mode-icon  { font-size: 1.6rem; }
+      .reply-sub-btn .mode-title { font-weight: 700; font-size: 0.88rem; color: var(--text); }
+      .reply-sub-btn .mode-desc  { font-size: 0.72rem; color: var(--text-muted); line-height: 1.4; }
+      .wa-sub-btn { border-color: #25D366; color: inherit; }
+      .wa-sub-btn:hover { background: #f0fdf4; border-color: #1ebe5c; }
+      #publicAppReplySection { margin-top: 1rem; }
     </style>
   </head>
   <body>
@@ -123,16 +152,42 @@
 
         <!-- Public reply section -->
         <div id="publicSection" style="display:none">
-          <div class="alert success" style="display:block;margin-bottom:1rem" id="publicInfo"></div>
-          <div id="senderPhoneBox" class="sender-phone-box" style="display:none"></div>
-          <a id="waPublicLink" href="#" class="wa-reply-btn" target="_blank" rel="noopener noreferrer" style="display:none">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.554 4.103 1.523 5.828L.057 23.5l5.797-1.522A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.002-1.371l-.359-.214-3.721.976.993-3.63-.233-.373A9.818 9.818 0 1 1 12 21.818z"/>
-            </svg>
-            פתח וואטסאפ עם השולח
-          </a>
+          <div class="alert success" style="display:block;margin-bottom:0.75rem" id="publicInfo"></div>
+
+          <!-- Two contact options (shown when sender revealed phone) -->
+          <div id="publicContactOptions" style="display:none">
+            <div class="reply-sub-grid">
+              <button type="button" class="reply-sub-btn" id="appReplyBtn">
+                <span class="mode-icon">💬</span>
+                <span class="mode-title">השב דרך האפליקציה</span>
+                <span class="mode-desc">שלח הודעה דרך Cartel</span>
+              </button>
+              <a id="waPublicLink" href="#" class="reply-sub-btn wa-sub-btn" target="_blank" rel="noopener noreferrer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#25D366" style="flex-shrink:0">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.554 4.103 1.523 5.828L.057 23.5l5.797-1.522A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.002-1.371l-.359-.214-3.721.976.993-3.63-.233-.373A9.818 9.818 0 1 1 12 21.818z"/>
+                </svg>
+                <span class="mode-title">עבור לוואטסאפ</span>
+                <span class="mode-desc">צור קשר ישיר עם השולח</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- No contact message (sender didn't reveal phone) -->
           <p class="field-hint" id="noContactMsg" style="display:none;margin-top:0.5rem;text-align:center"></p>
+
+          <!-- In-app reply form (shown after clicking app reply btn) -->
+          <div id="publicAppReplySection" style="display:none">
+            <form id="publicReplyForm">
+              <div class="form-group">
+                <label for="publicReplyMsg">הודעתך לשולח</label>
+                <textarea id="publicReplyMsg" placeholder="כתוב את תגובתך כאן..." maxlength="300" required></textarea>
+                <p class="char-count"><span id="publicCharCount">0</span>/300</p>
+              </div>
+              <button type="submit" id="publicReplySubmitBtn">שלח תגובה</button>
+            </form>
+            <div id="publicReplyAlertBox" class="alert"></div>
+          </div>
         </div>
 
         <!-- Anonymous reply section -->
@@ -194,10 +249,8 @@
             const phone = data.senderPhone;
             const waNum = phone.replace(/\D/g, '');
             document.getElementById('publicInfo').textContent =
-              'השולח אישר שאפשר לפנות אליו ישירות.';
-            document.getElementById('senderPhoneBox').style.display = 'block';
-            document.getElementById('senderPhoneBox').textContent = phone;
-            document.getElementById('waPublicLink').style.display = 'flex';
+              'השולח אישר שאפשר לפנות אליו ישירות. בחר כיצד ברצונך להשיב:';
+            document.getElementById('publicContactOptions').style.display = 'block';
             document.getElementById('waPublicLink').href = `https://wa.me/${waNum}`;
           } else {
             document.getElementById('publicInfo').textContent =
@@ -205,7 +258,14 @@
             document.getElementById('noContactMsg').style.display = 'block';
             document.getElementById('noContactMsg').textContent =
               'לא ניתן לפנות לשולח ישירות — אפשרי רק לשלוח תגובה אנונימית';
+            document.getElementById('publicAppReplySection').style.display = 'block';
           }
+        });
+
+        // App reply sub-button (inside public section)
+        document.getElementById('appReplyBtn').addEventListener('click', () => {
+          document.getElementById('publicAppReplySection').style.display = 'block';
+          document.getElementById('publicReplyMsg').focus();
         });
 
         // Anonymous reply button
@@ -250,6 +310,43 @@
         }
         btn.disabled    = false;
         btn.textContent = 'שלח תגובה אנונימית';
+      });
+
+      // Public in-app reply form
+      document.getElementById('publicReplyMsg').addEventListener('input', function() {
+        document.getElementById('publicCharCount').textContent = this.value.length;
+      });
+
+      document.getElementById('publicReplyForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn      = document.getElementById('publicReplySubmitBtn');
+        const alertBox = document.getElementById('publicReplyAlertBox');
+        btn.disabled      = true;
+        btn.textContent   = 'שולח...';
+        alertBox.className   = 'alert';
+        alertBox.textContent = '';
+
+        try {
+          const res  = await fetch('/api/reply?token=' + encodeURIComponent(token), {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ message: document.getElementById('publicReplyMsg').value.trim() }),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            alertBox.className   = 'alert success';
+            alertBox.textContent = data.message;
+            document.getElementById('publicReplyForm').style.display = 'none';
+          } else {
+            alertBox.className   = 'alert error';
+            alertBox.textContent = data.error;
+          }
+        } catch {
+          alertBox.className   = 'alert error';
+          alertBox.textContent = 'שגיאת רשת.';
+        }
+        btn.disabled    = false;
+        btn.textContent = 'שלח תגובה';
       });
 
       function showError(msg) {
