@@ -5,8 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cartel - שלח הודעה לנהג</title>
     <link rel="stylesheet" href="style.css" />
+  <style>
+    #splash {
+      position: fixed;
+      inset: 0;
+      background: #7c2d12;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      animation: splashFadeOut 0.6s ease-in-out 2.4s forwards;
+    }
+    #splash .splash-logo {
+      font-size: 3.2rem;
+      font-weight: 900;
+      color: white;
+      letter-spacing: 6px;
+      animation: splashLogoIn 0.7s cubic-bezier(0.22,1,0.36,1) forwards;
+      opacity: 0;
+      transform: scale(0.7);
+    }
+    #splash .splash-tagline {
+      color: rgba(255,255,255,0.65);
+      font-size: 0.95rem;
+      margin-top: 0.6rem;
+      letter-spacing: 2px;
+      animation: splashLogoIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.25s forwards;
+      opacity: 0;
+      transform: scale(0.7);
+    }
+    #splash .splash-dots {
+      display: flex;
+      gap: 0.45rem;
+      margin-top: 2.5rem;
+    }
+    #splash .splash-dots span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.5);
+      animation: splashDot 1s ease-in-out infinite;
+    }
+    #splash .splash-dots span:nth-child(2) { animation-delay: 0.18s; }
+    #splash .splash-dots span:nth-child(3) { animation-delay: 0.36s; }
+    @keyframes splashLogoIn {
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes splashDot {
+      0%, 100% { opacity: 0.3; transform: translateY(0); }
+      50%       { opacity: 1;   transform: translateY(-5px); }
+    }
+    @keyframes splashFadeOut {
+      to { opacity: 0; pointer-events: none; visibility: hidden; }
+    }
+  </style>
   </head>
   <body>
+
+    <!-- Splash screen -->
+    <div id="splash">
+      <div class="splash-logo">CARTEL</div>
+      <div class="splash-tagline">שלח הודעה אנונימית לנהג</div>
+      <div class="splash-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+
     <header>
       <div class="header-inner">
         <div>
