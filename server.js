@@ -13,7 +13,7 @@ const MESSAGES_FILE = path.join(DATA_DIR, 'messages.json');
 const SENDERS_FILE  = path.join(DATA_DIR, 'senders.json');
 const UPLOADS_DIR   = path.join(DATA_DIR, 'uploads');
 const ADMIN_USER    = process.env.ADMIN_USERNAME || 'admin';
-const ADMIN_PASS    = process.env.ADMIN_PASSWORD || 'carnotify2026';
+const ADMIN_PASS    = process.env.ADMIN_PASSWORD || 'cartel2026';
 
 [DATA_DIR, UPLOADS_DIR].forEach(d => { if (!fs.existsSync(d)) fs.mkdirSync(d); });
 if (!fs.existsSync(DRIVERS_FILE))  fs.writeFileSync(DRIVERS_FILE,  '{}');
@@ -260,7 +260,11 @@ app.post('/api/login', (req, res) => {
 app.get('/api/me', (req, res) => {
   const user = getUserSession(req);
   if (!user) return res.status(401).json({ error: 'Not authenticated' });
-  res.json({ phone: user.phone, name: user.name });
+  const drivers = loadDrivers();
+  const plates = Object.entries(drivers)
+    .filter(([, d]) => d.phone === user.phone)
+    .map(([plate]) => plate);
+  res.json({ phone: user.phone, name: user.name, plates });
 });
 
 app.post('/api/logout', (req, res) => {
@@ -271,6 +275,65 @@ app.post('/api/logout', (req, res) => {
 
 app.get('/api/admin-check', (req, res) => {
   res.json({ isAdmin: isAdminAuth(req) });
+});
+
+app.get('/api/inbox', (req, res) => {
+  const user = getUserSession(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  const drivers = loadDrivers();
+  const myPlates = new Set(
+    Object.entries(drivers)
+      .filter(([, d]) => d.phone === user.phone)
+      .map(([plate]) => plate)
+  );
+  const messages = loadMessages().filter(m => myPlates.has(m.plate)).reverse();
+  res.json(messages);
+});
+
+app.get('/api/profile', (req, res) => {
+  const user = getUserSession(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  const drivers = loadDrivers();
+  const plates = Object.entries(drivers)
+    .filter(([, d]) => d.phone === user.phone)
+    .map(([plate]) => plate);
+  res.json({ name: user.name, phone: user.phone, plates });
+});
+
+app.put('/api/profile', (req, res) => {
+  const user = getUserSession(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  const { name, plate } = req.body;
+  const newName = name !== undefined ? String(name).trim().slice(0, 50) : user.name;
+
+  const senders = loadSenders();
+  if (senders[user.phone]) {
+    senders[user.phone].name = newName;
+    saveSenders(senders);
+  }
+
+  const drivers = loadDrivers();
+  if (plate !== undefined) {
+    const trimmedPlate = plate.trim();
+    Object.keys(drivers).forEach(p => {
+      if (drivers[p].phone === user.phone) delete drivers[p];
+    });
+    if (trimmedPlate) {
+      const normalizedPlate = normalizePlate(trimmedPlate);
+      if (!/^\d{7,8}$/.test(normalizedPlate)) {
+        return res.status(400).json({ error: 'מספר רכב לא תקין' });
+      }
+      drivers[normalizedPlate] = { name: newName, phone: user.phone, registeredAt: new Date().toISOString() };
+    }
+  } else {
+    Object.keys(drivers).forEach(p => {
+      if (drivers[p].phone === user.phone) drivers[p].name = newName;
+    });
+  }
+  saveDrivers(drivers);
+
+  userSessions.set(parseCookies(req).userSession, { phone: user.phone, name: newName });
+  res.json({ success: true });
 });
 
 // ── Core API ──────────────────────────────────────────────────────

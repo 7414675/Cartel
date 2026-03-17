@@ -1,5 +1,5 @@
 {
-  "name": "carnotify",
+  "name": "cartel",
   "version": "1.0.0",
   "description": "שירות התקשר לנהג",
   "main": "server.js",
