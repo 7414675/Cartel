@@ -64,12 +64,10 @@
   <body>
 
     <script>
-      (function playSplashAudio() {
+      function playSplashAudio() {
         try {
           const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          // Engine rumble — rises and fades
-          const eng = ctx.createOscillator();
-          const engG = ctx.createGain();
+          const eng = ctx.createOscillator(), engG = ctx.createGain();
           eng.type = 'sawtooth';
           eng.frequency.setValueAtTime(65, ctx.currentTime);
           eng.frequency.linearRampToValueAtTime(190, ctx.currentTime + 1.6);
@@ -79,7 +77,6 @@
           engG.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.85);
           eng.connect(engG); engG.connect(ctx.destination);
           eng.start(ctx.currentTime); eng.stop(ctx.currentTime + 1.85);
-          // Two honks
           function honk(t, dur) {
             const h = ctx.createOscillator(), hg = ctx.createGain();
             h.type = 'square'; h.frequency.value = 430;
@@ -91,7 +88,20 @@
           honk(ctx.currentTime + 1.9, 0.28);
           honk(ctx.currentTime + 2.28, 0.35);
         } catch(e) {}
-      })();
+      }
+      // Browsers require user interaction before playing audio
+      let audioPlayed = false;
+      function triggerAudio() {
+        if (audioPlayed) return;
+        audioPlayed = true;
+        playSplashAudio();
+        document.removeEventListener('click', triggerAudio);
+        document.removeEventListener('touchstart', triggerAudio);
+        document.removeEventListener('keydown', triggerAudio);
+      }
+      document.addEventListener('click', triggerAudio);
+      document.addEventListener('touchstart', triggerAudio);
+      document.addEventListener('keydown', triggerAudio);
     </script>
 
     <!-- Splash screen -->
@@ -101,6 +111,7 @@
       <div class="splash-dots">
         <span></span><span></span><span></span>
       </div>
+      <p style="color:rgba(255,255,255,0.35);font-size:0.72rem;margin-top:1.5rem;letter-spacing:1px">tap anywhere for sound</p>
     </div>
 
     <header>
