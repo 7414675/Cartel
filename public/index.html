@@ -63,6 +63,37 @@
   </head>
   <body>
 
+    <script>
+      (function playSplashAudio() {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          // Engine rumble — rises and fades
+          const eng = ctx.createOscillator();
+          const engG = ctx.createGain();
+          eng.type = 'sawtooth';
+          eng.frequency.setValueAtTime(65, ctx.currentTime);
+          eng.frequency.linearRampToValueAtTime(190, ctx.currentTime + 1.6);
+          engG.gain.setValueAtTime(0, ctx.currentTime);
+          engG.gain.linearRampToValueAtTime(0.14, ctx.currentTime + 0.25);
+          engG.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 1.6);
+          engG.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.85);
+          eng.connect(engG); engG.connect(ctx.destination);
+          eng.start(ctx.currentTime); eng.stop(ctx.currentTime + 1.85);
+          // Two honks
+          function honk(t, dur) {
+            const h = ctx.createOscillator(), hg = ctx.createGain();
+            h.type = 'square'; h.frequency.value = 430;
+            hg.gain.setValueAtTime(0.22, t);
+            hg.gain.linearRampToValueAtTime(0, t + dur);
+            h.connect(hg); hg.connect(ctx.destination);
+            h.start(t); h.stop(t + dur);
+          }
+          honk(ctx.currentTime + 1.9, 0.28);
+          honk(ctx.currentTime + 2.28, 0.35);
+        } catch(e) {}
+      })();
+    </script>
+
     <!-- Splash screen -->
     <div id="splash">
       <div class="splash-logo">CARTEL</div>
@@ -77,6 +108,10 @@
         <div>
           <h1><a href="/" style="color:inherit;text-decoration:none">Cartel</a></h1>
           <p>text the plate</p>
+        </div>
+        <div class="header-nav">
+          <a href="inbox.html" class="header-icon" title="תיבת הדואר">📬</a>
+          <a href="profile.html" class="header-icon" title="הגדרות">⚙️</a>
         </div>
       </div>
     </header>
@@ -98,13 +133,6 @@
         <!-- User bar (shown when logged in) -->
         <div id="userBar" style="display:none" class="user-bar">
           <span id="userBarName"></span>
-          <div style="display:flex;align-items:center;gap:0.5rem">
-            <a href="inbox.html" title="תיבת הדואר"
-              style="font-size:0.95rem;color:var(--primary);text-decoration:none;font-weight:700">📬</a>
-            <a href="profile.html" title="הגדרות פרופיל"
-              style="font-size:0.95rem;color:var(--primary);text-decoration:none;font-weight:700">⚙️</a>
-            <button type="button" class="logout-inline" id="logoutBtn">התנתק</button>
-          </div>
         </div>
 
         <h2>שלח הודעה לנהג</h2>
@@ -357,16 +385,6 @@
         btn.disabled = false; btn.textContent = 'התחבר';
       });
 
-      document.getElementById('logoutBtn').addEventListener('click', async () => {
-        await fetch('/api/logout', { method: 'POST' });
-        showAuthGate();
-        const navLink = document.getElementById('registerNavLink');
-        navLink.href = 'register.html';
-        navLink.textContent = 'נהג? הרשם לקבלת הודעות \u2190';
-        document.getElementById('notifyForm').reset();
-        charCount.textContent = '0';
-        clearImage();
-      });
 
       // ── Plate formatting ──────────────────────────────────────────
       function formatPlate(digits) {

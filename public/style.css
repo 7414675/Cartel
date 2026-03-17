@@ -77,6 +77,26 @@ header p {
 
 .admin-badge:hover { background: rgba(255,255,255,0.28); }
 
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 8px;
+  font-size: 1.15rem;
+  text-decoration: none;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  transition: background 0.15s;
+}
+.header-icon:hover { background: rgba(255,255,255,0.28); }
+
 main {
   flex: 1;
   display: flex;
