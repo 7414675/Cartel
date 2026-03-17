@@ -256,7 +256,13 @@
           } else {
             document.getElementById('publicInfo').textContent =
               'השולח לא חשף את מספרו — תוכל להשיב דרך האפליקציה:';
+            const textarea = document.getElementById('publicReplyMsg');
+            if (data.driverPhone && !textarea.value) {
+              textarea.value = `המספר שלי הוא ${data.driverPhone}`;
+              document.getElementById('publicCharCount').textContent = textarea.value.length;
+            }
             document.getElementById('publicAppReplySection').style.display = 'block';
+            textarea.focus();
           }
         });
 
