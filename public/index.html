@@ -210,9 +210,14 @@
           <!-- Message textarea -->
           <div class="form-group">
             <label for="message">הודעה לנהג</label>
-            <textarea id="message" name="message"
-              placeholder="כתוב את ההודעה שלך כאן..."
-              maxlength="300" required></textarea>
+            <div style="position:relative">
+              <textarea id="message" name="message"
+                placeholder="כתוב את ההודעה שלך כאן..."
+                maxlength="300" required></textarea>
+              <div id="phonePreview" style="display:none;background:#d1d5db;color:#374151;font-size:0.82rem;font-weight:600;padding:0.4rem 0.75rem;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;direction:ltr;text-align:right">
+                📞 <span id="phonePreviewNum"></span>
+              </div>
+            </div>
             <p class="char-count"><span id="charCount">0</span>/300</p>
           </div>
 
@@ -332,17 +337,14 @@
       const scanBtn      = document.getElementById('scanBtn');
 
       let currentUserPhone = '';
-      const PHONE_TAG = () => `\n📞 המספר שלי: ${currentUserPhone}`;
 
       document.getElementById('revealPhone').addEventListener('change', function() {
-        if (this.checked) {
-          if (currentUserPhone && !messageInput.value.includes('📞 המספר שלי:')) {
-            messageInput.value += PHONE_TAG();
-            charCount.textContent = messageInput.value.length;
-          }
+        const preview = document.getElementById('phonePreview');
+        if (this.checked && currentUserPhone) {
+          document.getElementById('phonePreviewNum').textContent = currentUserPhone;
+          preview.style.display = 'block';
         } else {
-          messageInput.value = messageInput.value.replace(/\n?📞 המספר שלי:.*/, '');
-          charCount.textContent = messageInput.value.length;
+          preview.style.display = 'none';
         }
       });
 
