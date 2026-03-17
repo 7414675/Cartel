@@ -106,13 +106,25 @@
         }
       }
 
+      function updateSaveBtn() {
+        const digits = plateInput.value.replace(/[^0-9]/g, '');
+        const originalPlate = plateInput.dataset.original || '';
+        const changed = plateInput.value !== originalPlate;
+        const needsCheck = digits.length >= 7 && changed;
+        const checked = document.getElementById('ownershipCheck').checked;
+        document.getElementById('saveBtn').disabled = needsCheck && !checked;
+      }
+
       plateInput.addEventListener('input', () => {
         const digits = plateInput.value.replace(/[^0-9]/g, '').slice(0, 8);
         plateInput.value = formatPlate(digits);
-        document.getElementById('ownershipCheckGroup').style.display =
-          digits.length >= 7 ? 'block' : 'none';
+        const needsCheck = digits.length >= 7;
+        document.getElementById('ownershipCheckGroup').style.display = needsCheck ? 'block' : 'none';
         document.getElementById('ownershipCheck').checked = false;
+        updateSaveBtn();
       });
+
+      document.getElementById('ownershipCheck').addEventListener('change', updateSaveBtn);
 
       async function init() {
         try {

@@ -118,12 +118,23 @@
         }
       }
 
+      function updateSubmitBtn() {
+        const digits = plateInput.value.replace(/[^0-9]/g, '');
+        const needsCheck = digits.length >= 7;
+        const checked = document.getElementById('ownershipCheck').checked;
+        document.getElementById('step1Btn').disabled = needsCheck && !checked;
+      }
+
       plateInput.addEventListener('input', () => {
         const digits = plateInput.value.replace(/[^0-9]/g, '').slice(0, 8);
         plateInput.value = formatPlate(digits);
-        document.getElementById('ownershipCheckGroup').style.display =
-          digits.length >= 7 ? 'block' : 'none';
+        const needsCheck = digits.length >= 7;
+        document.getElementById('ownershipCheckGroup').style.display = needsCheck ? 'block' : 'none';
+        if (!needsCheck) document.getElementById('ownershipCheck').checked = false;
+        updateSubmitBtn();
       });
+
+      document.getElementById('ownershipCheck').addEventListener('change', updateSubmitBtn);
 
       // ── Step 1: submit registration ───────────────────────────────
       document.getElementById('step1Form').addEventListener('submit', async (e) => {
