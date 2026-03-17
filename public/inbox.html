@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cartel - תיבת הדואר</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .inbox-msg {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1rem 1.1rem;
+        margin-bottom: 0.85rem;
+        background: white;
+        transition: box-shadow 0.15s;
+      }
+      .inbox-msg:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+      .inbox-msg-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+      .inbox-plate {
+        font-weight: 700;
+        font-size: 0.88rem;
+        letter-spacing: 1.5px;
+        direction: ltr;
+        background: var(--bg);
+        padding: 0.15rem 0.55rem;
+        border-radius: 4px;
+        border: 1px solid var(--border);
+      }
+      .inbox-time { font-size: 0.75rem; color: var(--text-muted); }
+      .inbox-text {
+        font-size: 0.92rem;
+        line-height: 1.55;
+        color: var(--text);
+        margin-bottom: 0.75rem;
+      }
+      .inbox-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .inbox-attachment { font-size: 0.78rem; color: var(--text-muted); }
+      .btn-reply {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 1rem;
+        background: var(--primary);
+        color: white;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 700;
+        transition: background 0.15s;
+      }
+      .btn-reply:hover { background: var(--primary-dark); }
+      .inbox-empty {
+        text-align: center;
+        color: var(--text-muted);
+        padding: 2.5rem 0;
+        font-size: 0.95rem;
+      }
+      .inbox-empty .empty-icon { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; }
+      .inbox-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-inner">
+        <div>
+          <h1><a href="/" style="color:inherit;text-decoration:none">Cartel</a></h1>
+          <p>תיבת ההודעות שלי</p>
+        </div>
+        <a href="profile.html" class="admin-badge">⚙️ הגדרות</a>
+      </div>
+    </header>
+
+    <main>
+      <div class="card">
+
+        <!-- Not logged in -->
+        <div id="authState" style="display:none">
+          <div class="auth-gate">
+            <p class="auth-gate-msg">עליך להיות מחובר כדי לראות את ההודעות שלך</p>
+            <a href="/" class="btn-register">חזרה לדף הבית &larr;</a>
+          </div>
+        </div>
+
+        <!-- Logged in but no plate -->
+        <div id="noPlateState" style="display:none">
+          <h2>תיבת הדואר שלי</h2>
+          <p class="subtitle" style="margin-top:0.5rem">
+            אין לך רכב רשום במערכת. הוסף את מספר הרכב שלך כדי לקבל הודעות מנהגים אחרים.
+          </p>
+          <a href="profile.html" class="btn-register" style="display:inline-block;margin-top:1rem">הוסף רכב &larr;</a>
+        </div>
+
+        <!-- Inbox -->
+        <div id="inboxState" style="display:none">
+          <div class="inbox-title-row">
+            <h2>תיבת הדואר שלי</h2>
+            <span id="msgCount" class="section-count"></span>
+          </div>
+          <div id="msgList"></div>
+        </div>
+
+      </div>
+    </main>
+
+    <footer>
+      <a href="/" style="color:inherit">&larr; חזרה לדף הראשי</a>
+      &nbsp;&bull;&nbsp;
+      <a href="terms.html" style="color:inherit">תנאי שימוש</a>
+    </footer>
+
+    <script src="/admin-bar.js"></script>
+    <script>
+      function formatTime(iso) {
+        const d    = new Date(iso);
+        const diff = Date.now() - d;
+        const mins  = Math.floor(diff / 60000);
+        const hours = Math.floor(mins / 60);
+        const days  = Math.floor(hours / 24);
+        if (days > 6)  return d.toLocaleDateString('he-IL');
+        if (days > 0)  return `לפני ${days} ימים`;
+        if (hours > 0) return `לפני ${hours} שעות`;
+        if (mins > 0)  return `לפני ${mins} דקות`;
+        return 'עכשיו';
+      }
+
+      function formatPlate(plate) {
+        if (plate.length === 7) return plate.slice(0,2) + '-' + plate.slice(2,5) + '-' + plate.slice(5);
+        if (plate.length === 8) return plate.slice(0,3) + '-' + plate.slice(3,5) + '-' + plate.slice(5);
+        return plate;
+      }
+
+      function escapeHtml(text) {
+        const d = document.createElement('div');
+        d.textContent = text;
+        return d.innerHTML;
+      }
+
+      function renderMessages(msgs) {
+        const list = document.getElementById('msgList');
+        document.getElementById('msgCount').textContent = msgs.length + ' הודעות';
+        if (msgs.length === 0) {
+          list.innerHTML = `
+            <div class="inbox-empty">
+              <span class="empty-icon">📭</span>
+              אין הודעות עדיין
+            </div>`;
+          return;
+        }
+        list.innerHTML = msgs.map(m => `
+          <div class="inbox-msg">
+            <div class="inbox-msg-head">
+              <span class="inbox-plate">${formatPlate(m.plate)}</span>
+              <span class="inbox-time">${formatTime(m.sentAt)}</span>
+            </div>
+            <p class="inbox-text">${escapeHtml(m.message)}</p>
+            <div class="inbox-footer">
+              <span class="inbox-attachment">${m.imageFile ? '📎 תמונה מצורפת' : ''}</span>
+              <a href="/reply.html?token=${encodeURIComponent(m.replyToken)}" class="btn-reply">הגב &rarr;</a>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      async function init() {
+        try {
+          const meRes = await fetch('/api/me');
+          if (!meRes.ok) { document.getElementById('authState').style.display = 'block'; return; }
+          const me = await meRes.json();
+
+          if (!me.plates || me.plates.length === 0) {
+            document.getElementById('noPlateState').style.display = 'block';
+            return;
+          }
+
+          document.getElementById('inboxState').style.display = 'block';
+          const inboxRes = await fetch('/api/inbox');
+          if (!inboxRes.ok) { document.getElementById('msgList').textContent = 'שגיאה בטעינת הודעות.'; return; }
+          renderMessages(await inboxRes.json());
+        } catch {
+          document.getElementById('authState').style.display = 'block';
+        }
+      }
+
+      init();
+    </script>
+  </body>
+</html>

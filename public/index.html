@@ -29,6 +29,19 @@
 
     <main>
       <div class="card">
+
+        <!-- User bar (shown when logged in) -->
+        <div id="userBar" style="display:none" class="user-bar">
+          <span id="userBarName"></span>
+          <div style="display:flex;align-items:center;gap:0.5rem">
+            <a href="inbox.html" title="תיבת הדואר"
+              style="font-size:0.95rem;color:var(--primary);text-decoration:none;font-weight:700">📬</a>
+            <a href="profile.html" title="הגדרות פרופיל"
+              style="font-size:0.95rem;color:var(--primary);text-decoration:none;font-weight:700">⚙️</a>
+            <button type="button" class="logout-inline" id="logoutBtn">התנתק</button>
+          </div>
+        </div>
+
         <h2>שלח הודעה לנהג</h2>
         <p class="subtitle">
           הכנס את מספר הלוחית ושלח הודעה לנהג. מספר הטלפון שלו לא יוצג לך ללא הסכמתו.
@@ -51,18 +64,6 @@
               <button type="button" id="loginSubmitBtn">התחבר</button>
               <p id="loginError" class="field-hint" style="color:var(--error);min-height:1.2em"></p>
             </div>
-          </div>
-        </div>
-
-        <!-- User bar (shown when logged in) -->
-        <div id="userBar" style="display:none" class="user-bar">
-          <span id="userBarName"></span>
-          <div style="display:flex;align-items:center;gap:0.5rem">
-            <a href="inbox.html" title="תיבת הדואר"
-              style="font-size:0.95rem;color:var(--primary);text-decoration:none;font-weight:700">📬</a>
-            <a href="profile.html" title="הגדרות פרופיל"
-              style="font-size:0.95rem;color:var(--primary);text-decoration:none;font-weight:700">⚙️</a>
-            <button type="button" class="logout-inline" id="logoutBtn">התנתק</button>
           </div>
         </div>
 
