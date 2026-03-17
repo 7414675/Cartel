@@ -7,23 +7,39 @@ const app  = express();
 const PORT = process.env.PORT || 3000;
 
 // ── File paths ────────────────────────────────────────────────────
-const DATA_DIR      = path.join(__dirname, 'data');
-const DRIVERS_FILE  = path.join(DATA_DIR, 'drivers.json');
-const MESSAGES_FILE = path.join(DATA_DIR, 'messages.json');
-const SENDERS_FILE  = path.join(DATA_DIR, 'senders.json');
-const UPLOADS_DIR   = path.join(DATA_DIR, 'uploads');
-const ADMIN_USER    = process.env.ADMIN_USERNAME || 'admin';
-const ADMIN_PASS    = process.env.ADMIN_PASSWORD || 'cartel2026';
+const DATA_DIR        = path.join(__dirname, 'data');
+const DRIVERS_FILE    = path.join(DATA_DIR, 'drivers.json');
+const MESSAGES_FILE   = path.join(DATA_DIR, 'messages.json');
+const SENDERS_FILE    = path.join(DATA_DIR, 'senders.json');
+const SESSIONS_FILE   = path.join(DATA_DIR, 'sessions.json');
+const UPLOADS_DIR     = path.join(DATA_DIR, 'uploads');
+const ADMIN_USER      = process.env.ADMIN_USERNAME || 'admin';
+const ADMIN_PASS      = process.env.ADMIN_PASSWORD || 'cartel2026';
 
 [DATA_DIR, UPLOADS_DIR].forEach(d => { if (!fs.existsSync(d)) fs.mkdirSync(d); });
 if (!fs.existsSync(DRIVERS_FILE))  fs.writeFileSync(DRIVERS_FILE,  '{}');
 if (!fs.existsSync(MESSAGES_FILE)) fs.writeFileSync(MESSAGES_FILE, '[]');
 if (!fs.existsSync(SENDERS_FILE))  fs.writeFileSync(SENDERS_FILE,  '{}');
+if (!fs.existsSync(SESSIONS_FILE)) fs.writeFileSync(SESSIONS_FILE, '{}');
 
 // ── Sessions ──────────────────────────────────────────────────────
 const adminSessions        = new Set();
-const userSessions         = new Map(); // token → { phone, name }
 const pendingRegistrations = new Map(); // phone → { name, plate, otp, expiresAt }
+
+// Persist user sessions to disk so logins survive server restarts
+function loadUserSessions() { return load(SESSIONS_FILE); }
+function saveUserSessions(s) { save(SESSIONS_FILE, s); }
+
+function setUserSession(token, data) {
+  const sessions = loadUserSessions();
+  sessions[token] = data;
+  saveUserSessions(sessions);
+}
+function deleteUserSession(token) {
+  const sessions = loadUserSessions();
+  delete sessions[token];
+  saveUserSessions(sessions);
+}
 
 function parseCookies(req) {
   const out = {};
@@ -34,8 +50,12 @@ function parseCookies(req) {
   return out;
 }
 
-function isAdminAuth(req)    { return adminSessions.has(parseCookies(req).adminSession); }
-function getUserSession(req) { return userSessions.get(parseCookies(req).userSession) || null; }
+function isAdminAuth(req) { return adminSessions.has(parseCookies(req).adminSession); }
+function getUserSession(req) {
+  const token = parseCookies(req).userSession;
+  if (!token) return null;
+  return loadUserSessions()[token] || null;
+}
 
 const USER_COOKIE_OPTS = 'HttpOnly; Path=/; SameSite=Strict; Max-Age=2592000';
 
@@ -219,7 +239,7 @@ app.post('/api/otp/verify', (req, res) => {
   }
 
   const token = crypto.randomBytes(32).toString('hex');
-  userSessions.set(token, { phone: normalizedPhone, name: pending.name });
+  setUserSession(token, { phone: normalizedPhone, name: pending.name });
   res.setHeader('Set-Cookie', `userSession=${token}; ${USER_COOKIE_OPTS}`);
   res.json({
     success: true,
@@ -239,7 +259,7 @@ app.post('/api/login', (req, res) => {
   const senders = loadSenders();
   if (senders[normalizedPhone]) {
     const token = crypto.randomBytes(32).toString('hex');
-    userSessions.set(token, { phone: normalizedPhone, name: senders[normalizedPhone].name || '' });
+    setUserSession(token, { phone: normalizedPhone, name: senders[normalizedPhone].name || '' });
     res.setHeader('Set-Cookie', `userSession=${token}; ${USER_COOKIE_OPTS}`);
     return res.json({ success: true, name: senders[normalizedPhone].name || '' });
   }
@@ -249,7 +269,7 @@ app.post('/api/login', (req, res) => {
   const driverData = Object.values(drivers).find(d => d.phone === normalizedPhone);
   if (driverData) {
     const token = crypto.randomBytes(32).toString('hex');
-    userSessions.set(token, { phone: normalizedPhone, name: driverData.name || '' });
+    setUserSession(token, { phone: normalizedPhone, name: driverData.name || '' });
     res.setHeader('Set-Cookie', `userSession=${token}; ${USER_COOKIE_OPTS}`);
     return res.json({ success: true, name: driverData.name || '' });
   }
@@ -268,7 +288,7 @@ app.get('/api/me', (req, res) => {
 });
 
 app.post('/api/logout', (req, res) => {
-  userSessions.delete(parseCookies(req).userSession);
+  deleteUserSession(parseCookies(req).userSession);
   res.setHeader('Set-Cookie', 'userSession=; HttpOnly; Path=/; Max-Age=0');
   res.json({ success: true });
 });
@@ -332,7 +352,7 @@ app.put('/api/profile', (req, res) => {
   }
   saveDrivers(drivers);
 
-  userSessions.set(parseCookies(req).userSession, { phone: user.phone, name: newName });
+  setUserSession(parseCookies(req).userSession, { phone: user.phone, name: newName });
   res.json({ success: true });
 });
 
