@@ -167,6 +167,7 @@
               <span class="inbox-time">${formatTime(m.sentAt)}</span>
             </div>
             <p class="inbox-text">${escapeHtml(m.message)}</p>
+            ${m.revealPhone && m.senderPhone ? `<p style="font-size:0.82rem;color:var(--primary);font-weight:700;margin-bottom:0.5rem;direction:ltr;text-align:right">📞 ${escapeHtml(m.senderPhone)}</p>` : ''}
             <div class="inbox-footer">
               <span class="inbox-attachment">${m.imageFile ? '📎 תמונה מצורפת' : ''}</span>
               <a href="/reply.html?token=${encodeURIComponent(m.replyToken)}" class="btn-reply">הגב &rarr;</a>

@@ -428,13 +428,16 @@ app.get('/api/reply', (req, res) => {
   if (!token) return res.status(400).json({ error: 'Token required' });
   const msg = loadMessages().find(m => m.replyToken === token);
   if (!msg) return res.status(404).json({ error: 'הודעה לא נמצאה או שהקישור פג תוקף' });
+  const drivers    = loadDrivers();
+  const driverPhone = drivers[msg.plate] ? drivers[msg.plate].phone : null;
   res.json({
-    plate:       msg.plate,
-    message:     msg.message,
-    imageFile:   msg.imageFile || null,
-    sentAt:      msg.sentAt,
-    revealPhone: !!msg.revealPhone,
-    senderPhone: msg.revealPhone ? msg.senderPhone : null,
+    plate:        msg.plate,
+    message:      msg.message,
+    imageFile:    msg.imageFile || null,
+    sentAt:       msg.sentAt,
+    revealPhone:  !!msg.revealPhone,
+    senderPhone:  msg.revealPhone ? msg.senderPhone : null,
+    driverPhone,
   });
 });
 

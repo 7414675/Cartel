@@ -140,7 +140,7 @@
         <div class="reply-mode-grid">
           <button class="reply-mode-btn public-btn" id="publicBtn">
             <span class="mode-icon">📞</span>
-            <span class="mode-title">בפומבי</span>
+            <span class="mode-title">בגלוי</span>
             <span class="mode-desc">מספר הטלפון שלך יוצג לשולח</span>
           </button>
           <button class="reply-mode-btn" id="anonBtn">
@@ -258,8 +258,13 @@
 
         // App reply sub-button (inside public section)
         document.getElementById('appReplyBtn').addEventListener('click', () => {
+          const textarea = document.getElementById('publicReplyMsg');
+          if (data.driverPhone && !textarea.value) {
+            textarea.value = `המספר שלי הוא ${data.driverPhone}`;
+            document.getElementById('publicCharCount').textContent = textarea.value.length;
+          }
           document.getElementById('publicAppReplySection').style.display = 'block';
-          document.getElementById('publicReplyMsg').focus();
+          textarea.focus();
         });
 
         // Anonymous reply button
