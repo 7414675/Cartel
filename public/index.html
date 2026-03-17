@@ -63,46 +63,6 @@
   </head>
   <body>
 
-    <script>
-      function playSplashAudio() {
-        try {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          const eng = ctx.createOscillator(), engG = ctx.createGain();
-          eng.type = 'sawtooth';
-          eng.frequency.setValueAtTime(65, ctx.currentTime);
-          eng.frequency.linearRampToValueAtTime(190, ctx.currentTime + 1.6);
-          engG.gain.setValueAtTime(0, ctx.currentTime);
-          engG.gain.linearRampToValueAtTime(0.14, ctx.currentTime + 0.25);
-          engG.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 1.6);
-          engG.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.85);
-          eng.connect(engG); engG.connect(ctx.destination);
-          eng.start(ctx.currentTime); eng.stop(ctx.currentTime + 1.85);
-          function honk(t, dur) {
-            const h = ctx.createOscillator(), hg = ctx.createGain();
-            h.type = 'square'; h.frequency.value = 430;
-            hg.gain.setValueAtTime(0.22, t);
-            hg.gain.linearRampToValueAtTime(0, t + dur);
-            h.connect(hg); hg.connect(ctx.destination);
-            h.start(t); h.stop(t + dur);
-          }
-          honk(ctx.currentTime + 1.9, 0.28);
-          honk(ctx.currentTime + 2.28, 0.35);
-        } catch(e) {}
-      }
-      // Browsers require user interaction before playing audio
-      let audioPlayed = false;
-      function triggerAudio() {
-        if (audioPlayed) return;
-        audioPlayed = true;
-        playSplashAudio();
-        document.removeEventListener('click', triggerAudio);
-        document.removeEventListener('touchstart', triggerAudio);
-        document.removeEventListener('keydown', triggerAudio);
-      }
-      document.addEventListener('click', triggerAudio);
-      document.addEventListener('touchstart', triggerAudio);
-      document.addEventListener('keydown', triggerAudio);
-    </script>
 
     <!-- Splash screen -->
     <div id="splash">
