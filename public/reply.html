@@ -173,9 +173,6 @@
             </div>
           </div>
 
-          <!-- No contact message (sender didn't reveal phone) -->
-          <p class="field-hint" id="noContactMsg" style="display:none;margin-top:0.5rem;text-align:center"></p>
-
           <!-- In-app reply form (shown after clicking app reply btn) -->
           <div id="publicAppReplySection" style="display:none">
             <form id="publicReplyForm">
@@ -254,10 +251,7 @@
             document.getElementById('waPublicLink').href = `https://wa.me/${waNum}`;
           } else {
             document.getElementById('publicInfo').textContent =
-              'השולח לא הסכים לחשיפת מספר הטלפון שלו.';
-            document.getElementById('noContactMsg').style.display = 'block';
-            document.getElementById('noContactMsg').textContent =
-              'לא ניתן לפנות לשולח ישירות — אפשרי רק לשלוח תגובה אנונימית';
+              'השולח לא חשף את מספרו — תוכל להשיב דרך האפליקציה:';
             document.getElementById('publicAppReplySection').style.display = 'block';
           }
         });
