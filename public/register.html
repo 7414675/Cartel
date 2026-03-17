@@ -58,7 +58,7 @@
             <p class="field-hint">מלא רק אם ברצונך לקבל הודעות על הרכב שלך</p>
           </div>
 
-          <div class="form-group" id="ownershipCheckGroup" style="display:none">
+          <div class="form-group" id="ownershipCheckGroup">
             <label class="reveal-label">
               <input type="checkbox" id="ownershipCheck" class="reveal-checkbox" />
               <span style="font-size:0.85rem">אני מאשר שאני הבעלים החוקי של הרכב או בר רשות מטעמו לקבל הודעות באפליקציה זו. ידוע לי שאי אמירת אמת עשויה לחשוף אותי לעבירות האמורות בדין.</span>
@@ -128,9 +128,6 @@
       plateInput.addEventListener('input', () => {
         const digits = plateInput.value.replace(/[^0-9]/g, '').slice(0, 8);
         plateInput.value = formatPlate(digits);
-        const needsCheck = digits.length >= 7;
-        document.getElementById('ownershipCheckGroup').style.display = needsCheck ? 'block' : 'none';
-        if (!needsCheck) document.getElementById('ownershipCheck').checked = false;
         updateSubmitBtn();
       });
 
