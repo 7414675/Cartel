@@ -1,8 +1,20 @@
 require('dotenv').config();
-const express = require('express');
-const fs      = require('fs');
-const path    = require('path');
-const crypto  = require('crypto');
+const express  = require('express');
+const fs       = require('fs');
+const path     = require('path');
+const crypto   = require('crypto');
+const twilio   = process.env.TWILIO_ACCOUNT_SID
+  ? require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+  : null;
+
+async function sendSms(to, body) {
+  if (!twilio) { console.log(`[SMS mock] To: ${to} | ${body}`); return; }
+  try {
+    await twilio.messages.create({ from: process.env.TWILIO_FROM, to, body });
+  } catch (e) {
+    console.error(`[SMS error] ${e.message}`);
+  }
+}
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -200,7 +212,7 @@ app.post('/api/register', (req, res) => {
     expiresAt: Date.now() + 10 * 60 * 1000,
   });
 
-  console.log(`[OTP] Phone: ${normalizedPhone} | Code: ${otp} (auto-approved for testing)`);
+  sendSms(normalizedPhone, `קוד האימות שלך ב-Cartel הוא: ${otp}`);
 
   res.json({ requiresOtp: true, phone: normalizedPhone });
 });
@@ -409,10 +421,12 @@ app.post('/api/notify', (req, res) => {
   });
   saveMessages(msgs);
 
-  let logLine = `[SMS] To: ${driverPhone} | Plate: ${normalizedPlate} | Message: ${message}`;
-  if (revealPhone) logLine += ` | Sender: ${user.phone}`;
-  logLine += `\n  → Driver reply: http://localhost:${PORT}/reply?token=${replyToken}`;
-  console.log(logLine);
+  const replyUrl = `${process.env.APP_URL || `http://localhost:${PORT}`}/reply?token=${replyToken}`;
+  let smsBody = `הודעה חדשה ברכבך (${normalizedPlate}):\n"${message}"`;
+  if (revealPhone) smsBody += `\nמספר השולח: ${user.phone}`;
+  smsBody += `\nלתגובה: ${replyUrl}`;
+  sendSms(driverPhone, smsBody);
+  console.log(`[SMS] To: ${driverPhone} | Plate: ${normalizedPlate} | Reply: ${replyUrl}`);
 
   res.json({ success: true, message: 'ההודעה נשלחה לנהג בהצלחה!' });
 });
