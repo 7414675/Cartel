@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const fs      = require('fs');
 const path    = require('path');
@@ -15,6 +16,7 @@ const SESSIONS_FILE   = path.join(DATA_DIR, 'sessions.json');
 const UPLOADS_DIR     = path.join(DATA_DIR, 'uploads');
 const ADMIN_USER      = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASS      = process.env.ADMIN_PASSWORD || 'cartel2026';
+const ADMIN_PHONE_RAW = process.env.ADMIN_PHONE || null;
 
 [DATA_DIR, UPLOADS_DIR].forEach(d => { if (!fs.existsSync(d)) fs.mkdirSync(d); });
 if (!fs.existsSync(DRIVERS_FILE))  fs.writeFileSync(DRIVERS_FILE,  '{}');
@@ -272,6 +274,14 @@ app.post('/api/login', (req, res) => {
     setUserSession(token, { phone: normalizedPhone, name: driverData.name || '' });
     res.setHeader('Set-Cookie', `userSession=${token}; ${USER_COOKIE_OPTS}`);
     return res.json({ success: true, name: driverData.name || '' });
+  }
+
+  // Last fallback: admin phone
+  if (ADMIN_PHONE_RAW && normalizedPhone === normalizePhone(ADMIN_PHONE_RAW)) {
+    const token = crypto.randomBytes(32).toString('hex');
+    setUserSession(token, { phone: normalizedPhone, name: ADMIN_USER });
+    res.setHeader('Set-Cookie', `userSession=${token}; ${USER_COOKIE_OPTS}`);
+    return res.json({ success: true, name: ADMIN_USER });
   }
 
   res.status(401).json({ error: 'מספר הטלפון לא נמצא במערכת. אנא הרשם תחילה.' });

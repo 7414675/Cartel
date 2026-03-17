@@ -57,7 +57,13 @@
         <!-- User bar (shown when logged in) -->
         <div id="userBar" style="display:none" class="user-bar">
           <span id="userBarName"></span>
-          <button type="button" class="logout-inline" id="logoutBtn">התנתק</button>
+          <div style="display:flex;align-items:center;gap:0.5rem">
+            <a href="inbox.html" title="תיבת הדואר"
+              style="font-size:0.95rem;color:var(--primary);text-decoration:none;font-weight:700">📬</a>
+            <a href="profile.html" title="הגדרות פרופיל"
+              style="font-size:0.95rem;color:var(--primary);text-decoration:none;font-weight:700">⚙️</a>
+            <button type="button" class="logout-inline" id="logoutBtn">התנתק</button>
+          </div>
         </div>
 
         <!-- Send form (shown when logged in) -->
@@ -225,8 +231,7 @@
         try {
           const res = await fetch('/api/me');
           if (res.ok) {
-            const user = await res.json();
-            showLoggedIn(user.name || user.phone);
+            showLoggedIn(await res.json());
           } else {
             showAuthGate();
           }
@@ -235,11 +240,19 @@
         }
       }
 
-      function showLoggedIn(name) {
+      function showLoggedIn(user) {
         document.getElementById('authGate').style.display = 'none';
         document.getElementById('userBar').style.display  = 'flex';
         document.getElementById('notifyForm').style.display = 'block';
-        document.getElementById('userBarName').textContent = `שלום, ${name}`;
+        document.getElementById('userBarName').textContent = `שלום, ${user.name || user.phone}`;
+        const navLink = document.getElementById('registerNavLink');
+        if (user.plates && user.plates.length > 0) {
+          navLink.href = 'inbox.html';
+          navLink.textContent = '📬 תיבת הדואר שלי \u2190';
+        } else {
+          navLink.href = 'profile.html';
+          navLink.textContent = 'הוסף את הרכב שלך לקבלת הודעות \u2190';
+        }
       }
 
       function showAuthGate() {
@@ -267,7 +280,8 @@
           });
           const data = await res.json();
           if (res.ok) {
-            showLoggedIn(data.name || phone);
+            const me = await (await fetch('/api/me')).json();
+            showLoggedIn(me);
           } else {
             errEl.textContent = data.error;
           }
@@ -280,6 +294,9 @@
       document.getElementById('logoutBtn').addEventListener('click', async () => {
         await fetch('/api/logout', { method: 'POST' });
         showAuthGate();
+        const navLink = document.getElementById('registerNavLink');
+        navLink.href = 'register.html';
+        navLink.textContent = 'נהג? הרשם לקבלת הודעות \u2190';
         document.getElementById('notifyForm').reset();
         charCount.textContent = '0';
         clearImage();
