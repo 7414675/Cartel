@@ -59,6 +59,13 @@
               <p class="field-hint">עדכן אם קנית רכב חדש. השאר ריק אם אינך רוצה לקבל הודעות.</p>
             </div>
 
+            <div class="form-group" id="ownershipCheckGroup" style="display:none">
+              <label class="reveal-label">
+                <input type="checkbox" id="ownershipCheck" class="reveal-checkbox" />
+                <span style="font-size:0.85rem">אני מאשר שהרכב רשום על שמי או ברשותי ואני מודע לכך כי רישום רכב אחר עשוי להוות עבירות שונות על פי הדין.</span>
+              </label>
+            </div>
+
             <button type="submit" id="saveBtn">שמור שינויים</button>
           </form>
 
@@ -102,6 +109,9 @@
       plateInput.addEventListener('input', () => {
         const digits = plateInput.value.replace(/[^0-9]/g, '').slice(0, 8);
         plateInput.value = formatPlate(digits);
+        document.getElementById('ownershipCheckGroup').style.display =
+          digits.length >= 7 ? 'block' : 'none';
+        document.getElementById('ownershipCheck').checked = false;
       });
 
       async function init() {
@@ -130,13 +140,23 @@
         alertBox.textContent = '';
         const btn = document.getElementById('saveBtn');
         btn.disabled = true; btn.textContent = 'שומר...';
+        const plateVal = plateInput.value;
+        const plateDigits = plateVal.replace(/[^0-9]/g, '');
+        const originalPlate = document.getElementById('plateInput').dataset.original || '';
+        if (plateDigits.length >= 7 && plateVal !== originalPlate && !document.getElementById('ownershipCheck').checked) {
+          alertBox.className   = 'alert error';
+          alertBox.textContent = 'יש לאשר בעלות/רשות על הרכב לפני השמירה.';
+          btn.disabled = false; btn.textContent = 'שמור שינויים';
+          return;
+        }
+
         try {
           const res = await fetch('/api/profile', {
             method:  'PUT',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({
               name:  document.getElementById('nameInput').value.trim(),
-              plate: plateInput.value,
+              plate: plateVal,
             }),
           });
           const data = await res.json();

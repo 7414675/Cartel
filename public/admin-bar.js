@@ -11,7 +11,7 @@
   const style = document.createElement('style');
   style.textContent = [
     '.admin-float-bar{position:fixed;bottom:0;left:0;right:0;height:52px;',
-    'background:#1e3a5f;z-index:9999;display:flex;align-items:center;',
+    'background:#7c2d12;z-index:9999;display:flex;align-items:center;',
     'justify-content:center;gap:.25rem;padding:0 1rem;direction:rtl;}',
     '.admin-float-bar a{color:rgba(255,255,255,.75);text-decoration:none;',
     'padding:.4rem .85rem;border-radius:6px;font-size:.85rem;font-weight:600;',

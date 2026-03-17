@@ -58,6 +58,13 @@
             <p class="field-hint">מלא רק אם ברצונך לקבל הודעות על הרכב שלך</p>
           </div>
 
+          <div class="form-group" id="ownershipCheckGroup" style="display:none">
+            <label class="reveal-label">
+              <input type="checkbox" id="ownershipCheck" class="reveal-checkbox" />
+              <span style="font-size:0.85rem">אני מאשר שהרכב רשום על שמי או ברשותי ואני מודע לכך כי רישום רכב אחר עשוי להוות עבירות שונות על פי הדין.</span>
+            </label>
+          </div>
+
           <p class="tos-note">
             בהרשמה אתה מאשר את
             <a href="terms.html" target="_blank">תנאי השימוש ומדיניות הפרטיות</a>
@@ -114,6 +121,8 @@
       plateInput.addEventListener('input', () => {
         const digits = plateInput.value.replace(/[^0-9]/g, '').slice(0, 8);
         plateInput.value = formatPlate(digits);
+        document.getElementById('ownershipCheckGroup').style.display =
+          digits.length >= 7 ? 'block' : 'none';
       });
 
       // ── Step 1: submit registration ───────────────────────────────
@@ -124,6 +133,15 @@
         const btn = document.getElementById('step1Btn');
         btn.disabled = true; btn.textContent = 'שולח...';
 
+        const plateVal = plateInput.value;
+        const plateDigits = plateVal.replace(/[^0-9]/g, '');
+        if (plateDigits.length >= 7 && !document.getElementById('ownershipCheck').checked) {
+          alertBox.className   = 'alert error';
+          alertBox.textContent = 'יש לאשר בעלות/רשות על הרכב לפני ההרשמה.';
+          btn.disabled = false; btn.textContent = 'קבל קוד אימות';
+          return;
+        }
+
         try {
           const res  = await fetch('/api/register', {
             method:  'POST',
@@ -131,7 +149,7 @@
             body:    JSON.stringify({
               phone: document.getElementById('phone').value,
               name:  document.getElementById('name').value,
-              plate: plateInput.value,
+              plate: plateVal,
             }),
           });
           const data = await res.json();

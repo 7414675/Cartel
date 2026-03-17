@@ -6,10 +6,10 @@
   --text:       #0f172a;
   --muted:      #64748b;
   --border:     #e2e8f0;
-  --primary:    #2563eb;
+  --primary:    #ea580c;
   --danger:     #dc2626;
   --danger-bg:  #fee2e2;
-  --header-bg:  #1e3a5f;
+  --header-bg:  #7c2d12;
   --radius:     10px;
   --font:       'Segoe UI', Arial, sans-serif;
 }
@@ -87,7 +87,7 @@ button[type='submit'] {
   transition:    background 0.2s;
 }
 
-button[type='submit']:hover    { background: #1d4ed8; }
+button[type='submit']:hover    { background: #c2410c; }
 button[type='submit']:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .login-error {
@@ -181,7 +181,7 @@ button[type='submit']:disabled { opacity: 0.6; cursor: not-allowed; }
 .section-head h2 { font-size: 0.95rem; font-weight: 700; }
 
 .section-count {
-  background:    #dbeafe;
+  background:    #ffedd5;
   color:         var(--primary);
   border-radius: 999px;
   padding:       0.13rem 0.55rem;

@@ -15,6 +15,7 @@
       <div class="header-stats">
         <span class="stat-badge" id="statDrivers">...</span>
         <span class="stat-badge" id="statMessages">...</span>
+        <span class="stat-badge" id="statReports" style="background:rgba(220,38,38,0.25)">...</span>
       </div>
       <button class="btn-logout" onclick="logout()">התנתק</button>
     </header>
@@ -70,6 +71,53 @@
         </div>
       </section>
 
+      <!-- Reports -->
+      <section class="admin-section">
+        <div class="section-head">
+          <h2>🚨 דיווחים</h2>
+          <span class="section-count" id="reportCount"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>מדווח על</th>
+                <th>הודעה</th>
+                <th>מדווח ע"י</th>
+                <th>תאריך</th>
+                <th>פעולות</th>
+              </tr>
+            </thead>
+            <tbody id="reportsBody">
+              <tr><td colspan="5" class="td-empty">טוען...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Banned -->
+      <section class="admin-section">
+        <div class="section-head">
+          <h2>🚫 מספרים חסומים</h2>
+          <span class="section-count" id="bannedCount"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>מספר טלפון</th>
+                <th>סיבה</th>
+                <th>תאריך חסימה</th>
+                <th>פעולות</th>
+              </tr>
+            </thead>
+            <tbody id="bannedBody">
+              <tr><td colspan="4" class="td-empty">טוען...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
     </main>
 
     <script>
@@ -87,27 +135,92 @@
 
       async function load() {
         try {
-          const [dr, mr] = await Promise.all([
+          const [dr, mr, rr, br] = await Promise.all([
             fetch('/admin/api/drivers'),
             fetch('/admin/api/messages'),
+            fetch('/admin/api/reports'),
+            fetch('/admin/api/banned'),
           ]);
           if (dr.status === 401) { window.location.href = '/admin/login'; return; }
 
           const drivers  = await dr.json();
           const messages = await mr.json();
+          const reports  = await rr.json();
+          const banned   = await br.json();
 
           renderDrivers(drivers);
           renderMessages(messages);
+          renderReports(reports);
+          renderBanned(banned);
 
           const dc = Object.keys(drivers).length;
           const mc = messages.length;
+          const rc = reports.length;
+          const bnc = Object.keys(banned).length;
           document.getElementById('statDrivers').textContent  = `${dc} נהגים`;
           document.getElementById('statMessages').textContent = `${mc} הודעות`;
+          document.getElementById('statReports').textContent  = `${rc} דיווחים`;
           document.getElementById('driverCount').textContent  = dc;
           document.getElementById('messageCount').textContent = mc;
+          document.getElementById('reportCount').textContent  = rc;
+          document.getElementById('bannedCount').textContent  = bnc;
         } catch (err) {
           console.error(err);
         }
+      }
+
+      function renderReports(reports) {
+        const tbody = document.getElementById('reportsBody');
+        if (!reports.length) {
+          tbody.innerHTML = '<tr><td colspan="5" class="td-empty">אין דיווחים</td></tr>';
+          return;
+        }
+        tbody.innerHTML = [...reports].reverse().map(r => `
+          <tr>
+            <td dir="ltr" style="text-align:right;font-size:0.82rem">${esc(r.senderPhone || '—')}</td>
+            <td class="td-msg" title="${esc(r.message)}">${r.message.length > 60 ? esc(r.message.slice(0,60))+'...' : esc(r.message)}</td>
+            <td dir="ltr" style="text-align:right;font-size:0.82rem">${esc(r.reporterPhone || '—')}</td>
+            <td>${fmtDate(r.reportedAt)}</td>
+            <td>
+              ${r.senderPhone ? `<button class="btn-del" onclick="banPhone('${esc(r.senderPhone)}', 'דיווח')">חסום משתמש</button>` : '—'}
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      function renderBanned(banned) {
+        const tbody  = document.getElementById('bannedBody');
+        const entries = Object.entries(banned);
+        if (!entries.length) {
+          tbody.innerHTML = '<tr><td colspan="4" class="td-empty">אין מספרים חסומים</td></tr>';
+          return;
+        }
+        tbody.innerHTML = entries.map(([phone, info]) => `
+          <tr>
+            <td dir="ltr" style="text-align:right;font-weight:700">${esc(phone)}</td>
+            <td>${esc(info.reason || '—')}</td>
+            <td>${fmtDate(info.bannedAt)}</td>
+            <td><button class="btn-del" style="background:#dcfce7;color:#16a34a;border-color:#86efac" onclick="unbanPhone('${esc(phone)}')">בטל חסימה</button></td>
+          </tr>
+        `).join('');
+      }
+
+      async function banPhone(phone, reason) {
+        if (!confirm(`לחסום את מספר ${phone}?\nהמשתמש לא יוכל להירשם מחדש.`)) return;
+        const res = await fetch(`/admin/api/ban/${encodeURIComponent(phone)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason }),
+        });
+        if (res.ok) load();
+        else alert('שגיאה בחסימה');
+      }
+
+      async function unbanPhone(phone) {
+        if (!confirm(`לבטל חסימת מספר ${phone}?`)) return;
+        const res = await fetch(`/admin/api/unban/${encodeURIComponent(phone)}`, { method: 'POST' });
+        if (res.ok) load();
+        else alert('שגיאה בביטול חסימה');
       }
 
       function renderDrivers(drivers) {

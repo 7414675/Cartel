@@ -25,6 +25,9 @@ const DRIVERS_FILE    = path.join(DATA_DIR, 'drivers.json');
 const MESSAGES_FILE   = path.join(DATA_DIR, 'messages.json');
 const SENDERS_FILE    = path.join(DATA_DIR, 'senders.json');
 const SESSIONS_FILE   = path.join(DATA_DIR, 'sessions.json');
+const BLOCKS_FILE     = path.join(DATA_DIR, 'blocks.json');
+const REPORTS_FILE    = path.join(DATA_DIR, 'reports.json');
+const BANNED_FILE     = path.join(DATA_DIR, 'banned.json');
 const UPLOADS_DIR     = path.join(DATA_DIR, 'uploads');
 const ADMIN_USER      = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASS      = process.env.ADMIN_PASSWORD || 'cartel2026';
@@ -35,6 +38,9 @@ if (!fs.existsSync(DRIVERS_FILE))  fs.writeFileSync(DRIVERS_FILE,  '{}');
 if (!fs.existsSync(MESSAGES_FILE)) fs.writeFileSync(MESSAGES_FILE, '[]');
 if (!fs.existsSync(SENDERS_FILE))  fs.writeFileSync(SENDERS_FILE,  '{}');
 if (!fs.existsSync(SESSIONS_FILE)) fs.writeFileSync(SESSIONS_FILE, '{}');
+if (!fs.existsSync(BLOCKS_FILE))   fs.writeFileSync(BLOCKS_FILE,   '{}');
+if (!fs.existsSync(REPORTS_FILE))  fs.writeFileSync(REPORTS_FILE,  '[]');
+if (!fs.existsSync(BANNED_FILE))   fs.writeFileSync(BANNED_FILE,   '{}');
 
 // ── Sessions ──────────────────────────────────────────────────────
 const adminSessions        = new Set();
@@ -83,6 +89,12 @@ const loadMessages = () => load(MESSAGES_FILE);
 const saveMessages = m  => save(MESSAGES_FILE, m);
 const loadSenders  = () => load(SENDERS_FILE);
 const saveSenders  = s  => save(SENDERS_FILE,  s);
+const loadBlocks   = () => load(BLOCKS_FILE);
+const saveBlocks   = b  => save(BLOCKS_FILE,   b);
+const loadReports  = () => load(REPORTS_FILE);
+const saveReports  = r  => save(REPORTS_FILE,  r);
+const loadBanned   = () => load(BANNED_FILE);
+const saveBanned   = b  => save(BANNED_FILE,   b);
 
 function normalizePlate(p) { return p.replace(/[-\s]/g, '').toUpperCase(); }
 function normalizePhone(phone) {
@@ -165,6 +177,33 @@ app.post('/admin/api/logout', (req, res) => {
 
 app.get('/admin/api/drivers',  (req, res) => res.json(loadDrivers()));
 app.get('/admin/api/messages', (req, res) => res.json(loadMessages()));
+app.get('/admin/api/reports',  (req, res) => res.json(loadReports()));
+app.get('/admin/api/banned',   (req, res) => res.json(loadBanned()));
+
+app.post('/admin/api/ban/:phone', (req, res) => {
+  const phone   = decodeURIComponent(req.params.phone);
+  const banned  = loadBanned();
+  banned[phone] = { bannedAt: new Date().toISOString(), reason: req.body.reason || '' };
+  saveBanned(banned);
+  // Remove all their sessions
+  const sessions = loadUserSessions();
+  Object.keys(sessions).forEach(t => { if (sessions[t].phone === phone) delete sessions[t]; });
+  saveUserSessions(sessions);
+  // Remove from senders + drivers
+  const senders = loadSenders(); delete senders[phone]; saveSenders(senders);
+  const drivers = loadDrivers();
+  Object.keys(drivers).forEach(p => { if (drivers[p].phone === phone) delete drivers[p]; });
+  saveDrivers(drivers);
+  res.json({ success: true });
+});
+
+app.post('/admin/api/unban/:phone', (req, res) => {
+  const phone  = decodeURIComponent(req.params.phone);
+  const banned = loadBanned();
+  delete banned[phone];
+  saveBanned(banned);
+  res.json({ success: true });
+});
 
 app.delete('/admin/api/drivers/:plate', (req, res) => {
   const plate   = normalizePlate(req.params.plate);
@@ -196,6 +235,9 @@ app.post('/api/register', (req, res) => {
   const normalizedPhone = normalizePhone(phone);
   if (normalizedPhone.length < 10)
     return res.status(400).json({ error: 'מספר טלפון לא תקין' });
+
+  if (loadBanned()[normalizedPhone])
+    return res.status(403).json({ error: 'מספר טלפון זה חסום מהשירות. לפרטים פנה לתמיכה.' });
 
   if (plate && plate.trim()) {
     const normalizedPlate = normalizePlate(plate);
@@ -404,6 +446,13 @@ app.post('/api/notify', (req, res) => {
     return res.status(404).json({ error: 'מספר הרכב לא נמצא במערכת' });
 
   const driverPhone = drivers[normalizedPlate].phone;
+
+  // Check if driver has blocked this sender
+  const blocks = loadBlocks();
+  const driverBlocks = blocks[driverPhone] || [];
+  if (driverBlocks.includes(user.phone))
+    return res.status(403).json({ error: 'לא ניתן לשלוח הודעה לנהג זה.' });
+
   const msgId       = crypto.randomBytes(8).toString('hex');
   const replyToken  = crypto.randomBytes(16).toString('hex');
   const imageFile   = imageData ? saveImage(imageData, msgId) : null;
@@ -434,6 +483,44 @@ app.post('/api/notify', (req, res) => {
 app.get('/api/check/:plate', (req, res) => {
   const plate = normalizePlate(req.params.plate);
   res.json({ registered: !!loadDrivers()[plate] });
+});
+
+// ── Report a message ──────────────────────────────────────────────
+app.post('/api/report/:msgId', (req, res) => {
+  const user = getUserSession(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  const msg = loadMessages().find(m => m.id === req.params.msgId);
+  if (!msg) return res.status(404).json({ error: 'הודעה לא נמצאה' });
+  const reports = loadReports();
+  if (reports.find(r => r.msgId === msg.id && r.reporterPhone === user.phone))
+    return res.status(400).json({ error: 'כבר דיווחת על הודעה זו' });
+  reports.push({
+    id:           crypto.randomBytes(8).toString('hex'),
+    msgId:        msg.id,
+    plate:        msg.plate,
+    message:      msg.message,
+    senderPhone:  msg.senderPhone,
+    reporterPhone: user.phone,
+    reportedAt:   new Date().toISOString(),
+  });
+  saveReports(reports);
+  res.json({ success: true });
+});
+
+// ── Block a sender ────────────────────────────────────────────────
+app.post('/api/block/:msgId', (req, res) => {
+  const user = getUserSession(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  const msg = loadMessages().find(m => m.id === req.params.msgId);
+  if (!msg) return res.status(404).json({ error: 'הודעה לא נמצאה' });
+  const blocks = loadBlocks();
+  if (!blocks[user.phone]) blocks[user.phone] = [];
+  if (!blocks[user.phone].includes(msg.senderPhone))
+    blocks[user.phone].push(msg.senderPhone);
+  saveBlocks(blocks);
+  // Notify admin via console (shown in dashboard)
+  console.log(`[BLOCK] ${user.phone} blocked ${msg.senderPhone} (plate: ${msg.plate})`);
+  res.json({ success: true });
 });
 
 // ── Reply API ─────────────────────────────────────────────────────

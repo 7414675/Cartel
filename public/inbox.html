@@ -58,6 +58,23 @@
         transition: background 0.15s;
       }
       .btn-reply:hover { background: var(--primary-dark); }
+      .msg-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .btn-icon {
+        background: none;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.35rem 0.55rem;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: background 0.15s;
+        color: var(--text-muted);
+      }
+      .btn-icon:hover { background: #fee2e2; border-color: #fca5a5; color: #dc2626; }
+      .btn-icon.blocked { opacity: 0.4; cursor: not-allowed; }
       .inbox-empty {
         text-align: center;
         color: var(--text-muted);
@@ -173,7 +190,11 @@
             ${m.revealPhone && m.senderPhone ? `<p style="font-size:0.82rem;color:var(--primary);font-weight:700;margin-bottom:0.5rem;direction:ltr;text-align:right">📞 ${escapeHtml(m.senderPhone)}</p>` : ''}
             <div class="inbox-footer">
               <span class="inbox-attachment">${m.imageFile ? '📎 תמונה מצורפת' : ''}</span>
-              <a href="/reply.html?token=${encodeURIComponent(m.replyToken)}" class="btn-reply">הגב &rarr;</a>
+              <div class="msg-actions">
+                <button class="btn-icon" title="דווח על הודעה" onclick="reportMsg('${m.id}', this)">🚨</button>
+                <button class="btn-icon" title="חסום שולח" onclick="blockSender('${m.id}', this)">🚫</button>
+                <a href="/reply.html?token=${encodeURIComponent(m.replyToken)}" class="btn-reply">הגב &rarr;</a>
+              </div>
             </div>
           </div>
         `).join('');
@@ -197,6 +218,22 @@
         } catch {
           document.getElementById('authState').style.display = 'block';
         }
+      }
+
+      async function reportMsg(msgId, btn) {
+        if (!confirm('לדווח על הודעה זו כהודעה לא ראויה?')) return;
+        btn.disabled = true;
+        const res = await fetch(`/api/report/${msgId}`, { method: 'POST' });
+        if (res.ok) { btn.textContent = '✅'; btn.title = 'דווח'; }
+        else { btn.disabled = false; alert((await res.json()).error); }
+      }
+
+      async function blockSender(msgId, btn) {
+        if (!confirm('לחסום שולח זה? הוא לא יוכל לשלוח לך הודעות יותר.')) return;
+        btn.disabled = true;
+        const res = await fetch(`/api/block/${msgId}`, { method: 'POST' });
+        if (res.ok) { btn.textContent = '🚫'; btn.title = 'חסום'; btn.classList.add('blocked'); }
+        else { btn.disabled = false; alert((await res.json()).error); }
       }
 
       init();
