@@ -71,6 +71,7 @@ input[type='password'] {
 }
 
 input:focus { outline: none; border-color: var(--primary); }
+#searchInput:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(234,88,12,0.15), 0 2px 8px rgba(0,0,0,0.06); }
 
 button[type='submit'] {
   width:         100%;

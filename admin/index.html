@@ -22,6 +22,17 @@
 
     <main class="admin-main">
 
+      <!-- Search -->
+      <div style="position:relative">
+        <input type="text" id="searchInput" placeholder="🔍  חפש שם, לוחית רישוי, או מילה בהודעה..."
+          style="width:100%;padding:0.75rem 1rem;border:2px solid var(--border);border-radius:var(--radius);
+                 font-size:0.95rem;font-family:var(--font);direction:rtl;color:var(--text);background:white;
+                 box-shadow:0 2px 8px rgba(0,0,0,0.06);transition:border-color 0.2s"
+          oninput="applySearch(this.value)" />
+        <span id="searchResults" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);
+              font-size:0.8rem;color:var(--muted)"></span>
+      </div>
+
       <!-- Drivers -->
       <section class="admin-section">
         <div class="section-head">
@@ -121,6 +132,42 @@
     </main>
 
     <script>
+      let _drivers = {}, _messages = [];
+
+      function applySearch(q) {
+        const term = q.trim().toLowerCase();
+        const label = document.getElementById('searchResults');
+
+        if (!term) {
+          renderDrivers(_drivers);
+          renderMessages(_messages);
+          label.textContent = '';
+          return;
+        }
+
+        // Filter drivers: match name, plate, or phone
+        const filteredDrivers = Object.fromEntries(
+          Object.entries(_drivers).filter(([plate, d]) =>
+            plate.toLowerCase().includes(term) ||
+            (d.name  || '').toLowerCase().includes(term) ||
+            (d.phone || '').toLowerCase().includes(term)
+          )
+        );
+
+        // Filter messages: match plate, message text, or sender phone
+        const filteredMessages = _messages.filter(m =>
+          (m.plate       || '').toLowerCase().includes(term) ||
+          (m.message     || '').toLowerCase().includes(term) ||
+          (m.senderPhone || '').toLowerCase().includes(term)
+        );
+
+        renderDrivers(filteredDrivers);
+        renderMessages(filteredMessages);
+
+        const total = Object.keys(filteredDrivers).length + filteredMessages.length;
+        label.textContent = total ? `${total} תוצאות` : 'לא נמצאו תוצאות';
+      }
+
       function esc(s) {
         return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
           .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -143,18 +190,19 @@
           ]);
           if (dr.status === 401) { window.location.href = '/admin/login'; return; }
 
-          const drivers  = await dr.json();
-          const messages = await mr.json();
+          _drivers  = await dr.json();
+          _messages = await mr.json();
           const reports  = await rr.json();
           const banned   = await br.json();
 
-          renderDrivers(drivers);
-          renderMessages(messages);
+          applySearch(document.getElementById('searchInput').value);
+          const drivers  = _drivers;
+          const messages = _messages;
           renderReports(reports);
           renderBanned(banned);
 
-          const dc = Object.keys(drivers).length;
-          const mc = messages.length;
+          const dc = Object.keys(_drivers).length;
+          const mc = _messages.length;
           const rc = reports.length;
           const bnc = Object.keys(banned).length;
           document.getElementById('statDrivers').textContent  = `${dc} נהגים`;
