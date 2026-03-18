@@ -107,12 +107,15 @@
       }
 
       function updateSaveBtn() {
-        const digits = plateInput.value.replace(/[^0-9]/g, '');
         const originalPlate = plateInput.dataset.original || '';
-        const changed = plateInput.value !== originalPlate;
-        const needsCheck = digits.length >= 7 && changed;
-        const checked = document.getElementById('ownershipCheck').checked;
-        document.getElementById('saveBtn').disabled = needsCheck && !checked;
+        const originalName  = document.getElementById('nameInput').dataset.original || '';
+        const plateChanged  = plateInput.value !== originalPlate;
+        const nameChanged   = document.getElementById('nameInput').value.trim() !== originalName;
+        const anythingChanged = plateChanged || nameChanged;
+        const digits       = plateInput.value.replace(/[^0-9]/g, '');
+        const needsCheck   = digits.length >= 7 && plateChanged;
+        const checked      = document.getElementById('ownershipCheck').checked;
+        document.getElementById('saveBtn').disabled = !anythingChanged || (needsCheck && !checked);
       }
 
       plateInput.addEventListener('input', () => {
@@ -122,6 +125,7 @@
         updateSaveBtn();
       });
 
+      document.getElementById('nameInput').addEventListener('input', updateSaveBtn);
       document.getElementById('ownershipCheck').addEventListener('change', updateSaveBtn);
 
       async function init() {
@@ -130,7 +134,9 @@
           if (!res.ok) { document.getElementById('authState').style.display = 'block'; return; }
           const data = await res.json();
           document.getElementById('profileState').style.display = 'block';
-          document.getElementById('nameInput').value    = data.name  || '';
+          const nameInput = document.getElementById('nameInput');
+          nameInput.value = data.name || '';
+          nameInput.dataset.original = nameInput.value;
           document.getElementById('phoneDisplay').value = data.phone || '';
           if (data.plates && data.plates.length > 0) {
             const p = data.plates[0];
@@ -139,6 +145,8 @@
             else if (p.length === 8) fmt = p.slice(0,3) + '-' + p.slice(3,5) + '-' + p.slice(5);
             plateInput.value = fmt;
           }
+          plateInput.dataset.original = plateInput.value;
+          document.getElementById('saveBtn').disabled = true;
         } catch {
           document.getElementById('authState').style.display = 'block';
         }
