@@ -127,10 +127,9 @@
       document.getElementById('ownershipCheck').addEventListener('change', updateStep1Btn);
 
       function updateStep1Btn() {
-        const termsOk = document.getElementById('consentTerms').checked;
-        const digits  = plateInput.value.replace(/[^0-9]/g, '');
-        const needsOwnership = digits.length >= 7 && !document.getElementById('ownershipCheck').checked;
-        document.getElementById('step1Btn').disabled = !termsOk || needsOwnership;
+        const termsOk     = document.getElementById('consentTerms').checked;
+        const ownershipOk = document.getElementById('ownershipCheck').checked;
+        document.getElementById('step1Btn').disabled = !(termsOk && ownershipOk);
       }
       document.getElementById('consentTerms').addEventListener('change', updateStep1Btn);
       // Disable by default on load
@@ -145,13 +144,6 @@
         btn.disabled = true; btn.textContent = 'שולח...';
 
         const plateVal = plateInput.value;
-        const plateDigits = plateVal.replace(/[^0-9]/g, '');
-        if (plateDigits.length >= 7 && !document.getElementById('ownershipCheck').checked) {
-          alertBox.className   = 'alert error';
-          alertBox.textContent = 'יש לאשר בעלות/רשות על הרכב לפני ההרשמה.';
-          btn.disabled = false; btn.textContent = 'קבל קוד אימות';
-          return;
-        }
 
 
         try {
