@@ -71,20 +71,35 @@
 
           <div id="alertBox" class="alert"></div>
 
-          <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border)">
-            <p class="subtitle" style="margin-bottom:0.75rem">פעולות נוספות</p>
+          <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:0.75rem">
             <button type="button" id="logoutBtn" class="logout-inline"
-              style="font-size:0.9rem;padding:0.5rem 1rem">
-              התנתק מהחשבון
+              style="font-size:0.9rem;padding:0.5rem 1.1rem;display:flex;align-items:center;gap:0.4rem">
+              🔓 התנתק
             </button>
-            <button type="button" id="exportBtn" class="logout-inline"
-              style="font-size:0.9rem;padding:0.5rem 1rem;margin-top:0.5rem;background:#e0f2fe;color:#0369a1;border-color:#7dd3fc">
-              הורד את הנתונים שלי (JSON)
-            </button>
-            <button type="button" id="deleteAccountBtn" class="logout-inline"
-              style="font-size:0.9rem;padding:0.5rem 1rem;margin-top:0.5rem;background:#fee2e2;color:#dc2626;border-color:#fca5a5">
-              מחק את החשבון ואת כל הנתונים שלי
-            </button>
+
+            <div style="position:relative">
+              <button type="button" id="moreActionsBtn"
+                style="font-size:0.85rem;padding:0.5rem 1rem;background:white;border:1px solid var(--border);
+                       border-radius:8px;cursor:pointer;font-family:inherit;color:var(--text-muted);
+                       display:flex;align-items:center;gap:0.35rem">
+                פעולות נוספות ▾
+              </button>
+              <div id="moreActionsMenu"
+                style="display:none;position:absolute;left:0;bottom:calc(100% + 6px);
+                       background:white;border:1px solid var(--border);border-radius:10px;
+                       box-shadow:0 4px 20px rgba(0,0,0,0.12);min-width:220px;overflow:hidden;z-index:50">
+                <button type="button" id="exportBtn"
+                  style="width:100%;padding:0.75rem 1rem;background:none;border:none;border-bottom:1px solid var(--border);
+                         text-align:right;font-family:inherit;font-size:0.88rem;cursor:pointer;color:#0369a1;display:flex;align-items:center;gap:0.5rem">
+                  📥 הורד את הנתונים שלי
+                </button>
+                <button type="button" id="deleteAccountBtn"
+                  style="width:100%;padding:0.75rem 1rem;background:none;border:none;
+                         text-align:right;font-family:inherit;font-size:0.88rem;cursor:pointer;color:#dc2626;display:flex;align-items:center;gap:0.5rem">
+                  🗑️ מחק חשבון וכל הנתונים
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -182,6 +197,13 @@
         }
         btn.disabled = false; btn.textContent = 'שמור שינויים';
       });
+
+      const moreMenu = document.getElementById('moreActionsMenu');
+      document.getElementById('moreActionsBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        moreMenu.style.display = moreMenu.style.display === 'none' ? 'block' : 'none';
+      });
+      document.addEventListener('click', () => { moreMenu.style.display = 'none'; });
 
       document.getElementById('logoutBtn').addEventListener('click', async () => {
         await fetch('/api/logout', { method: 'POST' });
