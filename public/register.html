@@ -65,22 +65,10 @@
             </label>
           </div>
 
-          <p class="tos-note">
-            בהרשמה אתה מאשר את
-            <a href="terms.html" target="_blank">תנאי השימוש ומדיניות הפרטיות</a>
-            ומסכים לקבלת עדכונים שיווקיים
-          </p>
-
-          <div class="form-group" style="margin-bottom:0.75rem">
-            <label class="reveal-label">
-              <input type="checkbox" id="consentTerms" class="reveal-checkbox" required />
-              <span style="font-size:0.85rem">קראתי ואני מסכים ל<a href="terms.html" target="_blank" style="color:var(--primary)">תנאי השימוש</a></span>
-            </label>
-          </div>
           <div class="form-group" style="margin-bottom:1rem">
             <label class="reveal-label">
-              <input type="checkbox" id="consentPrivacy" class="reveal-checkbox" required />
-              <span style="font-size:0.85rem">קראתי ואני מסכים ל<a href="terms.html" target="_blank" style="color:var(--primary)">מדיניות הפרטיות</a></span>
+              <input type="checkbox" id="consentTerms" class="reveal-checkbox" />
+              <span style="font-size:0.85rem">קראתי ואני מסכים ל<a href="terms.html" target="_blank" style="color:var(--primary)">תנאי השימוש ומדיניות הפרטיות</a> ומאשר קבלת עדכונים ומבצעים מ-CarTel</span>
             </label>
           </div>
           <button type="submit" id="step1Btn">קבל קוד אימות</button>
@@ -130,28 +118,21 @@
         }
       }
 
-      function updateSubmitBtn() {
-        const digits = plateInput.value.replace(/[^0-9]/g, '');
-        const needsCheck = digits.length >= 7;
-        const checked = document.getElementById('ownershipCheck').checked;
-        document.getElementById('step1Btn').disabled = needsCheck && !checked;
-      }
-
       plateInput.addEventListener('input', () => {
         const digits = plateInput.value.replace(/[^0-9]/g, '').slice(0, 8);
         plateInput.value = formatPlate(digits);
-        updateSubmitBtn();
+        updateStep1Btn();
       });
 
-      document.getElementById('ownershipCheck').addEventListener('change', updateSubmitBtn);
+      document.getElementById('ownershipCheck').addEventListener('change', updateStep1Btn);
 
       function updateStep1Btn() {
-        const termsOk   = document.getElementById('consentTerms').checked;
-        const privacyOk = document.getElementById('consentPrivacy').checked;
-        document.getElementById('step1Btn').disabled = !(termsOk && privacyOk);
+        const termsOk = document.getElementById('consentTerms').checked;
+        const digits  = plateInput.value.replace(/[^0-9]/g, '');
+        const needsOwnership = digits.length >= 7 && !document.getElementById('ownershipCheck').checked;
+        document.getElementById('step1Btn').disabled = !termsOk || needsOwnership;
       }
       document.getElementById('consentTerms').addEventListener('change', updateStep1Btn);
-      document.getElementById('consentPrivacy').addEventListener('change', updateStep1Btn);
       // Disable by default on load
       document.getElementById('step1Btn').disabled = true;
 
@@ -172,12 +153,6 @@
           return;
         }
 
-        if (!document.getElementById('consentTerms').checked || !document.getElementById('consentPrivacy').checked) {
-          alertBox.className   = 'alert error';
-          alertBox.textContent = 'יש לאשר את תנאי השימוש ומדיניות הפרטיות.';
-          btn.disabled = false; btn.textContent = 'קבל קוד אימות';
-          return;
-        }
 
         try {
           const res  = await fetch('/api/register', {
