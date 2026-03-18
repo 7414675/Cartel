@@ -278,6 +278,7 @@ app.post('/api/otp/verify', (req, res) => {
   senders[normalizedPhone] = {
     name:         pending.name,
     registeredAt: new Date().toISOString(),
+    consentAt:    new Date().toISOString(),
   };
   saveSenders(senders);
 
@@ -418,6 +419,79 @@ app.put('/api/profile', (req, res) => {
 
   setUserSession(parseCookies(req).userSession, { phone: user.phone, name: newName });
   res.json({ success: true });
+});
+
+// ── GDPR: Delete account ──────────────────────────────────────────
+app.delete('/api/account', (req, res) => {
+  const user = getUserSession(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+  // Remove from senders
+  const senders = loadSenders();
+  delete senders[user.phone];
+  saveSenders(senders);
+
+  // Remove from drivers
+  const drivers = loadDrivers();
+  Object.keys(drivers).forEach(p => {
+    if (drivers[p].phone === user.phone) delete drivers[p];
+  });
+  saveDrivers(drivers);
+
+  // Anonymize messages sent by this user (replace senderPhone with null)
+  const messages = loadMessages();
+  messages.forEach(m => {
+    if (m.senderPhone === user.phone) { m.senderPhone = null; m.revealPhone = false; }
+  });
+  saveMessages(messages);
+
+  // Remove blocks associated with this user
+  const blocks = loadBlocks();
+  delete blocks[user.phone];
+  Object.keys(blocks).forEach(k => {
+    blocks[k] = blocks[k].filter(p => p !== user.phone);
+  });
+  saveBlocks(blocks);
+
+  // Delete session
+  const token = parseCookies(req).userSession;
+  deleteUserSession(token);
+  res.setHeader('Set-Cookie', 'userSession=; HttpOnly; Path=/; Max-Age=0');
+  res.json({ success: true });
+});
+
+// ── GDPR: Export user data ────────────────────────────────────────
+app.get('/api/export', (req, res) => {
+  const user = getUserSession(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+  const drivers = loadDrivers();
+  const plates = Object.entries(drivers)
+    .filter(([, d]) => d.phone === user.phone)
+    .map(([plate, d]) => ({ plate, registeredAt: d.registeredAt }));
+
+  const messages = loadMessages()
+    .filter(m => plates.some(p => p.plate === m.plate))
+    .map(m => ({ id: m.id, plate: m.plate, message: m.message, sentAt: m.sentAt }));
+
+  const senders = loadSenders();
+  const profile = senders[user.phone] || {};
+
+  const exportData = {
+    exportedAt: new Date().toISOString(),
+    profile: {
+      name: user.name,
+      phone: user.phone,
+      registeredAt: profile.registeredAt,
+      consentAt: profile.consentAt,
+    },
+    vehicles: plates,
+    messagesReceived: messages,
+  };
+
+  res.setHeader('Content-Disposition', `attachment; filename="cartel-data-${Date.now()}.json"`);
+  res.setHeader('Content-Type', 'application/json');
+  res.json(exportData);
 });
 
 // ── Core API ──────────────────────────────────────────────────────

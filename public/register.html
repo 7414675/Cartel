@@ -71,6 +71,18 @@
             ומסכים לקבלת עדכונים שיווקיים
           </p>
 
+          <div class="form-group" style="margin-bottom:0.75rem">
+            <label class="reveal-label">
+              <input type="checkbox" id="consentTerms" class="reveal-checkbox" required />
+              <span style="font-size:0.85rem">קראתי ואני מסכים ל<a href="terms.html" target="_blank" style="color:var(--primary)">תנאי השימוש</a></span>
+            </label>
+          </div>
+          <div class="form-group" style="margin-bottom:1rem">
+            <label class="reveal-label">
+              <input type="checkbox" id="consentPrivacy" class="reveal-checkbox" required />
+              <span style="font-size:0.85rem">קראתי ואני מסכים ל<a href="terms.html" target="_blank" style="color:var(--primary)">מדיניות הפרטיות</a></span>
+            </label>
+          </div>
           <button type="submit" id="step1Btn">קבל קוד אימות</button>
         </form>
 
@@ -133,6 +145,16 @@
 
       document.getElementById('ownershipCheck').addEventListener('change', updateSubmitBtn);
 
+      function updateStep1Btn() {
+        const termsOk   = document.getElementById('consentTerms').checked;
+        const privacyOk = document.getElementById('consentPrivacy').checked;
+        document.getElementById('step1Btn').disabled = !(termsOk && privacyOk);
+      }
+      document.getElementById('consentTerms').addEventListener('change', updateStep1Btn);
+      document.getElementById('consentPrivacy').addEventListener('change', updateStep1Btn);
+      // Disable by default on load
+      document.getElementById('step1Btn').disabled = true;
+
       // ── Step 1: submit registration ───────────────────────────────
       document.getElementById('step1Form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -146,6 +168,13 @@
         if (plateDigits.length >= 7 && !document.getElementById('ownershipCheck').checked) {
           alertBox.className   = 'alert error';
           alertBox.textContent = 'יש לאשר בעלות/רשות על הרכב לפני ההרשמה.';
+          btn.disabled = false; btn.textContent = 'קבל קוד אימות';
+          return;
+        }
+
+        if (!document.getElementById('consentTerms').checked || !document.getElementById('consentPrivacy').checked) {
+          alertBox.className   = 'alert error';
+          alertBox.textContent = 'יש לאשר את תנאי השימוש ומדיניות הפרטיות.';
           btn.disabled = false; btn.textContent = 'קבל קוד אימות';
           return;
         }

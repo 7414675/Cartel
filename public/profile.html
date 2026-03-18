@@ -77,6 +77,14 @@
               style="font-size:0.9rem;padding:0.5rem 1rem">
               התנתק מהחשבון
             </button>
+            <button type="button" id="exportBtn" class="logout-inline"
+              style="font-size:0.9rem;padding:0.5rem 1rem;margin-top:0.5rem;background:#e0f2fe;color:#0369a1;border-color:#7dd3fc">
+              הורד את הנתונים שלי (JSON)
+            </button>
+            <button type="button" id="deleteAccountBtn" class="logout-inline"
+              style="font-size:0.9rem;padding:0.5rem 1rem;margin-top:0.5rem;background:#fee2e2;color:#dc2626;border-color:#fca5a5">
+              מחק את החשבון ואת כל הנתונים שלי
+            </button>
           </div>
         </div>
 
@@ -178,6 +186,21 @@
       document.getElementById('logoutBtn').addEventListener('click', async () => {
         await fetch('/api/logout', { method: 'POST' });
         window.location.href = '/';
+      });
+
+      document.getElementById('exportBtn').addEventListener('click', () => {
+        window.location.href = '/api/export';
+      });
+
+      document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
+        if (!confirm('האם אתה בטוח? פעולה זו תמחק לצמיתות את כל הנתונים שלך ולא ניתן לשחזרם.')) return;
+        const res = await fetch('/api/account', { method: 'DELETE' });
+        if (res.ok) {
+          alert('החשבון נמחק בהצלחה.');
+          window.location.href = '/';
+        } else {
+          alert('שגיאה במחיקת החשבון. נסה שוב.');
+        }
       });
 
       init();
