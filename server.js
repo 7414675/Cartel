@@ -266,10 +266,11 @@ app.post('/api/otp/verify', (req, res) => {
   const normalizedPhone = normalizePhone(phone);
   const pending = pendingRegistrations.get(normalizedPhone);
 
-  // Auto-approve for testing — any code passes (also check expiry)
   if (!pending) return res.status(400).json({ error: 'לא נמצאה בקשת הרשמה. נסה להירשם מחדש.' });
   if (Date.now() > pending.expiresAt)
     return res.status(400).json({ error: 'קוד האימות פג תוקף. נסה להירשם מחדש.' });
+  if (otp.trim() !== pending.otp)
+    return res.status(400).json({ error: 'קוד האימות שגוי. נסה שנית.' });
 
   pendingRegistrations.delete(normalizedPhone);
 
