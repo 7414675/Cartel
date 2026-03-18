@@ -27,13 +27,21 @@
       transform: scale(0.7);
     }
     #splash .splash-tagline {
-      color: rgba(255,255,255,0.65);
-      font-size: 0.95rem;
-      margin-top: 0.6rem;
-      letter-spacing: 2px;
+      margin-top: 1rem;
       animation: splashLogoIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.25s forwards;
       opacity: 0;
       transform: scale(0.7);
+      /* plate shape */
+      background: #f5f0d8;
+      color: #111;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 0.35rem 1.2rem;
+      border: 3px solid #222;
+      border-radius: 6px;
+      box-shadow: inset 0 0 0 2px #f5f0d8, inset 0 0 0 4px #222;
     }
     #splash .splash-dots {
       display: flex;
@@ -66,7 +74,7 @@
 
     <!-- Splash screen -->
     <div id="splash">
-      <div class="splash-logo">Car<span style="color:#fb923c">T</span>el</div>
+      <div class="splash-logo">CarTel</div>
       <div class="splash-tagline">text the plate</div>
       <div class="splash-dots">
         <span></span><span></span><span></span>
@@ -76,7 +84,7 @@
     <header>
       <div class="header-inner">
         <div>
-          <h1><a href="/" style="color:inherit;text-decoration:none">Car<span style="color:#fb923c">T</span>el</a></h1>
+          <h1><a href="/" style="color:inherit;text-decoration:none">CarTel</a></h1>
           <p>text the plate</p>
         </div>
         <div class="header-nav">
