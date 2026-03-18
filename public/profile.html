@@ -107,25 +107,16 @@
       }
 
       function updateSaveBtn() {
-        const originalPlate = plateInput.dataset.original || '';
-        const originalName  = document.getElementById('nameInput').dataset.original || '';
-        const plateChanged  = plateInput.value !== originalPlate;
-        const nameChanged   = document.getElementById('nameInput').value.trim() !== originalName;
-        const anythingChanged = plateChanged || nameChanged;
-        const digits       = plateInput.value.replace(/[^0-9]/g, '');
-        const needsCheck   = digits.length >= 7 && plateChanged;
-        const checked      = document.getElementById('ownershipCheck').checked;
-        document.getElementById('saveBtn').disabled = !anythingChanged || (needsCheck && !checked);
+        const checked = document.getElementById('ownershipCheck').checked;
+        document.getElementById('saveBtn').disabled = !checked;
       }
 
       plateInput.addEventListener('input', () => {
         const digits = plateInput.value.replace(/[^0-9]/g, '').slice(0, 8);
         plateInput.value = formatPlate(digits);
-        document.getElementById('ownershipCheck').checked = false;
         updateSaveBtn();
       });
 
-      document.getElementById('nameInput').addEventListener('input', updateSaveBtn);
       document.getElementById('ownershipCheck').addEventListener('change', updateSaveBtn);
 
       async function init() {
@@ -159,14 +150,6 @@
         const btn = document.getElementById('saveBtn');
         btn.disabled = true; btn.textContent = 'שומר...';
         const plateVal = plateInput.value;
-        const plateDigits = plateVal.replace(/[^0-9]/g, '');
-        const originalPlate = document.getElementById('plateInput').dataset.original || '';
-        if (plateDigits.length >= 7 && plateVal !== originalPlate && !document.getElementById('ownershipCheck').checked) {
-          alertBox.className   = 'alert error';
-          alertBox.textContent = 'יש לאשר בעלות/רשות על הרכב לפני השמירה.';
-          btn.disabled = false; btn.textContent = 'שמור שינויים';
-          return;
-        }
 
         try {
           const res = await fetch('/api/profile', {
