@@ -376,7 +376,9 @@ app.get('/api/inbox', (req, res) => {
       .filter(([, d]) => d.phone === user.phone)
       .map(([plate]) => plate)
   );
-  const messages = loadMessages().filter(m => myPlates.has(m.plate)).reverse();
+  const messages = loadMessages()
+    .filter(m => myPlates.has(m.plate) || m.recipientPhone === user.phone)
+    .reverse();
   res.json(messages);
 });
 
@@ -655,9 +657,35 @@ app.post('/api/reply', (req, res) => {
   const { token }   = req.query;
   const { message } = req.body;
   if (!token || !message) return res.status(400).json({ error: 'חסרים פרטים' });
-  const msg = loadMessages().find(m => m.replyToken === token);
+  const messages = loadMessages();
+  const msg = messages.find(m => m.replyToken === token);
   if (!msg) return res.status(404).json({ error: 'הודעה לא נמצאה' });
-  console.log(`[Anonymous Reply] Plate: ${msg.plate} | ${message}`);
+
+  const drivers    = loadDrivers();
+  const driverPhone = drivers[msg.plate] ? drivers[msg.plate].phone : null;
+  const driverName  = drivers[msg.plate] ? drivers[msg.plate].name  : null;
+
+  // Save reply into messages so it appears in original sender's inbox
+  const replyEntry = {
+    id:             crypto.randomBytes(16).toString('hex'),
+    plate:          msg.plate,
+    message:        String(message).trim().slice(0, 1000),
+    senderPhone:    driverPhone,
+    revealPhone:    !!driverPhone,
+    recipientPhone: msg.senderPhone,   // route to original sender
+    isReply:        true,
+    replyToken:     crypto.randomBytes(24).toString('hex'),
+    sentAt:         new Date().toISOString(),
+  };
+  messages.push(replyEntry);
+  saveMessages(messages);
+
+  // SMS notification to original sender
+  if (msg.senderPhone) {
+    const smsBody = `תגובה מנהג הרכב (${msg.plate}):\n"${String(message).trim().slice(0, 160)}"`;
+    sendSms(msg.senderPhone, smsBody);
+  }
+
   res.json({ success: true, message: 'תגובתך נשלחה בהצלחה!' });
 });
 
