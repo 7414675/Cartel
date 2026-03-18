@@ -213,9 +213,64 @@
       </div>
     </main>
 
-    <footer>Cartel &bull; <a href="terms.html" style="color:inherit">תנאי שימוש</a></footer>
+    <footer>Cartel &bull; <a href="terms.html" style="color:inherit">תנאי שימוש</a>&nbsp;&bull;&nbsp;<a href="#" onclick="openContact();return false;" style="color:inherit">פנייה למנהל</a>&nbsp;&bull;&nbsp;<a href="#" onclick="openContact();return false;" style="color:inherit">כתוב אלינו</a></footer>
 
     <script src="/admin-bar.js"></script>
+    <!-- Contact modal -->
+    <div class="contact-modal-overlay" id="contactOverlay">
+      <div class="contact-modal">
+        <h3>כתוב אלינו</h3>
+        <p>שלח הודעה לצוות CarTel — נחזור אליך בהקדם</p>
+        <div class="form-group">
+          <label for="contactMsg">הודעתך</label>
+          <textarea id="contactMsg" placeholder="כתוב כאן..." maxlength="1000"></textarea>
+        </div>
+        <div class="contact-modal-footer">
+          <button class="btn-cancel" onclick="closeContact()">ביטול</button>
+          <button class="btn-register" id="contactSendBtn" onclick="sendContact()">שלח</button>
+        </div>
+        <div id="contactAlert" class="alert" style="margin-top:0.75rem"></div>
+      </div>
+    </div>
+    <script>
+      function openContact()  { document.getElementById('contactOverlay').classList.add('open'); }
+      function closeContact() {
+        document.getElementById('contactOverlay').classList.remove('open');
+        document.getElementById('contactMsg').value = '';
+        const a = document.getElementById('contactAlert');
+        a.className = 'alert'; a.textContent = '';
+      }
+      async function sendContact() {
+        const msg = document.getElementById('contactMsg').value.trim();
+        const btn = document.getElementById('contactSendBtn');
+        const alertBox = document.getElementById('contactAlert');
+        if (!msg) { alertBox.className = 'alert error'; alertBox.textContent = 'יש להזין הודעה'; return; }
+        btn.disabled = true; btn.textContent = 'שולח...';
+        try {
+          const res = await fetch('/api/contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: msg }),
+          });
+          if (res.ok) {
+            alertBox.className = 'alert success';
+            alertBox.textContent = 'ההודעה נשלחה! נחזור אליך בהקדם.';
+            btn.disabled = false; btn.textContent = 'שלח';
+            setTimeout(closeContact, 2000);
+          } else {
+            const d = await res.json();
+            alertBox.className = 'alert error'; alertBox.textContent = d.error;
+            btn.disabled = false; btn.textContent = 'שלח';
+          }
+        } catch {
+          alertBox.className = 'alert error'; alertBox.textContent = 'שגיאת רשת. נסה שוב.';
+          btn.disabled = false; btn.textContent = 'שלח';
+        }
+      }
+      document.getElementById('contactOverlay').addEventListener('click', function(e) {
+        if (e.target === this) closeContact();
+      });
+    </script>
     <script>
       const token = new URLSearchParams(window.location.search).get('token');
 

@@ -129,6 +129,30 @@
         </div>
       </section>
 
+      <!-- Contacts -->
+      <section class="admin-section">
+        <div class="section-head">
+          <h2>✉️ פניות משתמשים</h2>
+          <span class="section-count" id="contactCount"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>שם</th>
+                <th>טלפון</th>
+                <th>הודעה</th>
+                <th>תאריך</th>
+                <th>פעולות</th>
+              </tr>
+            </thead>
+            <tbody id="contactsBody">
+              <tr><td colspan="5" class="td-empty">טוען...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
     </main>
 
     <script>
@@ -182,11 +206,12 @@
 
       async function load() {
         try {
-          const [dr, mr, rr, br] = await Promise.all([
+          const [dr, mr, rr, br, cr] = await Promise.all([
             fetch('/admin/api/drivers'),
             fetch('/admin/api/messages'),
             fetch('/admin/api/reports'),
             fetch('/admin/api/banned'),
+            fetch('/admin/api/contacts'),
           ]);
           if (dr.status === 401) { window.location.href = '/admin/login'; return; }
 
@@ -194,17 +219,18 @@
           _messages = await mr.json();
           const reports  = await rr.json();
           const banned   = await br.json();
+          const contacts = await cr.json();
 
           applySearch(document.getElementById('searchInput').value);
-          const drivers  = _drivers;
-          const messages = _messages;
           renderReports(reports);
           renderBanned(banned);
+          renderContacts(contacts);
 
-          const dc = Object.keys(_drivers).length;
-          const mc = _messages.length;
-          const rc = reports.length;
+          const dc  = Object.keys(_drivers).length;
+          const mc  = _messages.length;
+          const rc  = reports.length;
           const bnc = Object.keys(banned).length;
+          const cc  = contacts.filter(c => !c.read).length;
           document.getElementById('statDrivers').textContent  = `${dc} נהגים`;
           document.getElementById('statMessages').textContent = `${mc} הודעות`;
           document.getElementById('statReports').textContent  = `${rc} דיווחים`;
@@ -212,6 +238,7 @@
           document.getElementById('messageCount').textContent = mc;
           document.getElementById('reportCount').textContent  = rc;
           document.getElementById('bannedCount').textContent  = bnc;
+          document.getElementById('contactCount').textContent = contacts.length + (cc ? ` (${cc} חדשות)` : '');
         } catch (err) {
           console.error(err);
         }
@@ -330,6 +357,31 @@
         const res = await fetch(`/admin/api/messages/${id}`, { method: 'DELETE' });
         if (res.ok) load();
         else alert('שגיאה במחיקה');
+      }
+
+      function renderContacts(contacts) {
+        const tbody = document.getElementById('contactsBody');
+        if (!contacts.length) {
+          tbody.innerHTML = '<tr><td colspan="5" class="td-empty">אין פניות</td></tr>';
+          return;
+        }
+        tbody.innerHTML = [...contacts].reverse().map(c => `
+          <tr style="${c.read ? '' : 'background:#fffbeb;font-weight:600'}">
+            <td>${esc(c.name || '—')}</td>
+            <td dir="ltr" style="text-align:right;font-size:0.82rem">${esc(c.phone || '—')}</td>
+            <td class="td-msg" title="${esc(c.message)}">${c.message.length > 60 ? esc(c.message.slice(0,60))+'...' : esc(c.message)}</td>
+            <td>${fmtDate(c.sentAt)}</td>
+            <td>${c.read ? '<span style="color:var(--muted);font-size:0.8rem">נקרא</span>' :
+              `<button class="btn-del" style="background:#dcfce7;color:#16a34a;border-color:#86efac" onclick="markRead('${esc(c.id)}')">סמן כנקרא</button>`}
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      async function markRead(id) {
+        const res = await fetch(`/admin/api/contacts/${id}/read`, { method: 'POST' });
+        if (res.ok) load();
+        else alert('שגיאה');
       }
 
       async function logout() {

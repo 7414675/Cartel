@@ -28,6 +28,7 @@ const SESSIONS_FILE   = path.join(DATA_DIR, 'sessions.json');
 const BLOCKS_FILE     = path.join(DATA_DIR, 'blocks.json');
 const REPORTS_FILE    = path.join(DATA_DIR, 'reports.json');
 const BANNED_FILE     = path.join(DATA_DIR, 'banned.json');
+const CONTACTS_FILE   = path.join(DATA_DIR, 'contacts.json');
 const UPLOADS_DIR     = path.join(DATA_DIR, 'uploads');
 const ADMIN_USER      = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASS      = process.env.ADMIN_PASSWORD || 'cartel2026';
@@ -40,7 +41,8 @@ if (!fs.existsSync(SENDERS_FILE))  fs.writeFileSync(SENDERS_FILE,  '{}');
 if (!fs.existsSync(SESSIONS_FILE)) fs.writeFileSync(SESSIONS_FILE, '{}');
 if (!fs.existsSync(BLOCKS_FILE))   fs.writeFileSync(BLOCKS_FILE,   '{}');
 if (!fs.existsSync(REPORTS_FILE))  fs.writeFileSync(REPORTS_FILE,  '[]');
-if (!fs.existsSync(BANNED_FILE))   fs.writeFileSync(BANNED_FILE,   '{}');
+if (!fs.existsSync(BANNED_FILE))    fs.writeFileSync(BANNED_FILE,    '{}');
+if (!fs.existsSync(CONTACTS_FILE)) fs.writeFileSync(CONTACTS_FILE, '[]');
 
 // ── Sessions ──────────────────────────────────────────────────────
 const adminSessions        = new Set();
@@ -93,8 +95,10 @@ const loadBlocks   = () => load(BLOCKS_FILE);
 const saveBlocks   = b  => save(BLOCKS_FILE,   b);
 const loadReports  = () => load(REPORTS_FILE);
 const saveReports  = r  => save(REPORTS_FILE,  r);
-const loadBanned   = () => load(BANNED_FILE);
-const saveBanned   = b  => save(BANNED_FILE,   b);
+const loadBanned    = () => load(BANNED_FILE);
+const saveBanned    = b  => save(BANNED_FILE,    b);
+const loadContacts  = () => load(CONTACTS_FILE);
+const saveContacts  = c  => save(CONTACTS_FILE,  c);
 
 function normalizePlate(p) { return p.replace(/[-\s]/g, '').toUpperCase(); }
 function normalizePhone(phone) {
@@ -493,6 +497,36 @@ app.get('/api/export', (req, res) => {
   res.setHeader('Content-Disposition', `attachment; filename="cartel-data-${Date.now()}.json"`);
   res.setHeader('Content-Type', 'application/json');
   res.json(exportData);
+});
+
+// ── Contact Admin ─────────────────────────────────────────────────
+app.post('/api/contact', (req, res) => {
+  const { name, phone, message } = req.body;
+  if (!message || !String(message).trim())
+    return res.status(400).json({ error: 'יש להזין הודעה' });
+  const user = getUserSession(req);
+  const contacts = loadContacts();
+  contacts.push({
+    id:        crypto.randomBytes(8).toString('hex'),
+    name:      user ? user.name : (name ? String(name).trim().slice(0, 50) : ''),
+    phone:     user ? user.phone : (phone ? String(phone).trim().slice(0, 20) : ''),
+    message:   String(message).trim().slice(0, 1000),
+    sentAt:    new Date().toISOString(),
+    read:      false,
+  });
+  saveContacts(contacts);
+  res.json({ success: true });
+});
+
+app.get('/admin/api/contacts', (req, res) => res.json(loadContacts()));
+
+app.post('/admin/api/contacts/:id/read', (req, res) => {
+  const contacts = loadContacts();
+  const c = contacts.find(x => x.id === req.params.id);
+  if (!c) return res.status(404).json({ error: 'לא נמצא' });
+  c.read = true;
+  saveContacts(contacts);
+  res.json({ success: true });
 });
 
 // ── Core API ──────────────────────────────────────────────────────
