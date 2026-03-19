@@ -285,6 +285,28 @@
     <input type="file" id="cameraFallbackInput" accept="image/*" style="display:none" />
     <canvas id="captureCanvas" style="display:none"></canvas>
 
+    <!-- Camera modal for photo attachment -->
+    <div id="imgCameraModal" class="camera-modal" style="display:none">
+      <div class="camera-modal-inner">
+        <div class="camera-modal-header">
+          <span>צלם תמונה לצירוף</span>
+          <button type="button" id="closeImgCameraBtn" class="camera-close-btn">&times;</button>
+        </div>
+        <video id="imgCameraVideo" class="camera-video" autoplay playsinline muted></video>
+        <canvas id="imgCaptureCanvas" style="display:none"></canvas>
+        <div class="camera-modal-footer">
+          <button type="button" id="imgCaptureBtn" class="camera-capture-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+            צלם
+          </button>
+        </div>
+      </div>
+    </div>
+
     <footer>
       מספר הטלפון של הנהג לא יוצג ללא הסכמתו &nbsp;&bull;&nbsp;
       <a href="terms.html" style="color:inherit">תנאי שימוש ופרטיות</a>
@@ -671,10 +693,46 @@
       }
 
       document.getElementById('galleryBtn').addEventListener('click', () => document.getElementById('imgGallery').click());
-      document.getElementById('camBtn').addEventListener('click',     () => document.getElementById('imgCamera').click());
       document.getElementById('imgGallery').addEventListener('change', e => handleImageSelect(e.target.files[0]));
       document.getElementById('imgCamera').addEventListener('change',  e => handleImageSelect(e.target.files[0]));
       document.getElementById('removeImgBtn').addEventListener('click', clearImage);
+
+      // ── Camera modal for photo attachment ─────────────────────────
+      let imgCameraStream = null;
+
+      function closeImgCameraModal() {
+        if (imgCameraStream) { imgCameraStream.getTracks().forEach(t => t.stop()); imgCameraStream = null; }
+        document.getElementById('imgCameraVideo').srcObject = null;
+        document.getElementById('imgCameraModal').style.display = 'none';
+      }
+
+      document.getElementById('camBtn').addEventListener('click', async () => {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          document.getElementById('imgCamera').click(); return;
+        }
+        try {
+          imgCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
+          document.getElementById('imgCameraVideo').srcObject = imgCameraStream;
+          document.getElementById('imgCameraModal').style.display = 'flex';
+        } catch {
+          document.getElementById('imgCamera').click();
+        }
+      });
+
+      document.getElementById('closeImgCameraBtn').addEventListener('click', closeImgCameraModal);
+
+      document.getElementById('imgCaptureBtn').addEventListener('click', () => {
+        const video  = document.getElementById('imgCameraVideo');
+        const canvas = document.getElementById('imgCaptureCanvas');
+        canvas.width  = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        canvas.toBlob(blob => {
+          const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
+          handleImageSelect(file);
+          closeImgCameraModal();
+        }, 'image/jpeg', 0.9);
+      });
 
       // ── Form submit ───────────────────────────────────────────────
       document.getElementById('notifyForm').addEventListener('submit', async (e) => {
