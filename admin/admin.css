@@ -1,4 +1,5 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+.logo-icon { display:inline-block; height:1em; width:0.84em; vertical-align:-0.15em; margin-right:0.2em; }
 
 :root {
   --bg:         #f1f5f9;

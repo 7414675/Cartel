@@ -29,10 +29,8 @@ const BLOCKS_FILE     = path.join(DATA_DIR, 'blocks.json');
 const REPORTS_FILE    = path.join(DATA_DIR, 'reports.json');
 const BANNED_FILE     = path.join(DATA_DIR, 'banned.json');
 const CONTACTS_FILE   = path.join(DATA_DIR, 'contacts.json');
+const ADMINS_FILE     = path.join(DATA_DIR, 'admins.json');
 const UPLOADS_DIR     = path.join(DATA_DIR, 'uploads');
-const ADMIN_USER      = process.env.ADMIN_USERNAME || 'admin';
-const ADMIN_PASS      = process.env.ADMIN_PASSWORD || 'cartel2026';
-const ADMIN_PHONE_RAW = process.env.ADMIN_PHONE || null;
 
 [DATA_DIR, UPLOADS_DIR].forEach(d => { if (!fs.existsSync(d)) fs.mkdirSync(d); });
 if (!fs.existsSync(DRIVERS_FILE))  fs.writeFileSync(DRIVERS_FILE,  '{}');
@@ -43,9 +41,9 @@ if (!fs.existsSync(BLOCKS_FILE))   fs.writeFileSync(BLOCKS_FILE,   '{}');
 if (!fs.existsSync(REPORTS_FILE))  fs.writeFileSync(REPORTS_FILE,  '[]');
 if (!fs.existsSync(BANNED_FILE))    fs.writeFileSync(BANNED_FILE,    '{}');
 if (!fs.existsSync(CONTACTS_FILE)) fs.writeFileSync(CONTACTS_FILE, '[]');
+if (!fs.existsSync(ADMINS_FILE))   fs.writeFileSync(ADMINS_FILE,   '{}');
 
 // ── Sessions ──────────────────────────────────────────────────────
-const adminSessions        = new Set();
 const pendingRegistrations = new Map(); // phone → { name, plate, otp, expiresAt }
 
 // Persist user sessions to disk so logins survive server restarts
@@ -72,7 +70,6 @@ function parseCookies(req) {
   return out;
 }
 
-function isAdminAuth(req) { return adminSessions.has(parseCookies(req).adminSession); }
 function getUserSession(req) {
   const token = parseCookies(req).userSession;
   if (!token) return null;
@@ -80,6 +77,12 @@ function getUserSession(req) {
 }
 
 const USER_COOKIE_OPTS = 'HttpOnly; Path=/; SameSite=Strict; Max-Age=2592000';
+
+function isAdmin(req) {
+  const user = getUserSession(req);
+  if (!user) return false;
+  return !!loadAdmins()[user.phone];
+}
 
 // ── Data helpers ──────────────────────────────────────────────────
 const load = f => JSON.parse(fs.readFileSync(f, 'utf8'));
@@ -99,6 +102,8 @@ const loadBanned    = () => load(BANNED_FILE);
 const saveBanned    = b  => save(BANNED_FILE,    b);
 const loadContacts  = () => load(CONTACTS_FILE);
 const saveContacts  = c  => save(CONTACTS_FILE,  c);
+const loadAdmins    = () => load(ADMINS_FILE);
+const saveAdmins    = a  => save(ADMINS_FILE,    a);
 
 function normalizePlate(p) { return p.replace(/[-\s]/g, '').toUpperCase(); }
 function normalizePhone(phone) {
@@ -142,41 +147,51 @@ app.get('/images/:filename', (req, res) => {
   res.sendFile(fpath);
 });
 
-// Admin auth middleware
+// Admin middleware — phone-number-based role check
 app.use('/admin', (req, res, next) => {
-  const { method, path: p } = req;
-  if (method === 'GET'  && p === '/login')     return next();
-  if (method === 'POST' && p === '/api/login') return next();
-  if (isAdminAuth(req))                        return next();
+  const { path: p } = req;
+  if (p === '/admin.css') return next(); // already handled above
+  if (isAdmin(req)) return next();
   if (p.startsWith('/api/')) return res.status(401).json({ error: 'Unauthorized' });
-  res.redirect('/admin/login');
+  res.redirect('/');
 });
 
 // ── Admin pages ───────────────────────────────────────────────────
-app.get('/admin/login', (req, res) => {
-  if (isAdminAuth(req)) return res.redirect('/admin');
-  res.sendFile(path.join(__dirname, 'admin', 'login.html'));
-});
 app.get('/admin', (req, res) =>
   res.sendFile(path.join(__dirname, 'admin', 'index.html')));
 
 // ── Admin API ─────────────────────────────────────────────────────
-app.post('/admin/api/login', (req, res) => {
-  const { username, password } = req.body;
-  if (username === ADMIN_USER && password === ADMIN_PASS) {
-    const sid = crypto.randomBytes(32).toString('hex');
-    adminSessions.add(sid);
-    res.setHeader('Set-Cookie',
-      `adminSession=${sid}; HttpOnly; Path=/; SameSite=Strict; Max-Age=2592000`);
-    return res.json({ success: true });
-  }
-  res.status(401).json({ error: 'שם משתמש או סיסמה שגויים' });
+// Grant admin to a phone number
+app.post('/admin/api/admins/:phone', (req, res) => {
+  const phone   = decodeURIComponent(req.params.phone);
+  const admins  = loadAdmins();
+  const granter = getUserSession(req);
+  admins[phone] = { grantedAt: new Date().toISOString(), grantedBy: granter.phone };
+  saveAdmins(admins);
+  res.json({ success: true });
 });
 
-app.post('/admin/api/logout', (req, res) => {
-  adminSessions.delete(parseCookies(req).adminSession);
-  res.setHeader('Set-Cookie', 'adminSession=; HttpOnly; Path=/; Max-Age=0');
+// Revoke admin from a phone number (cannot revoke yourself)
+app.delete('/admin/api/admins/:phone', (req, res) => {
+  const phone  = decodeURIComponent(req.params.phone);
+  const me     = getUserSession(req);
+  if (phone === me.phone) return res.status(400).json({ error: 'לא ניתן לבטל הרשאת מנהל מעצמך' });
+  const admins = loadAdmins();
+  delete admins[phone];
+  saveAdmins(admins);
   res.json({ success: true });
+});
+
+app.get('/admin/api/admins', (req, res) => {
+  const admins  = loadAdmins();
+  const senders = loadSenders();
+  const result  = Object.entries(admins).map(([phone, info]) => ({
+    phone,
+    name:      senders[phone]?.name || '—',
+    grantedAt: info.grantedAt,
+    grantedBy: info.grantedBy,
+  }));
+  res.json(result);
 });
 
 app.get('/admin/api/drivers',  (req, res) => res.json(loadDrivers()));
@@ -336,14 +351,6 @@ app.post('/api/login', (req, res) => {
     return res.json({ success: true, name: driverData.name || '' });
   }
 
-  // Last fallback: admin phone
-  if (ADMIN_PHONE_RAW && normalizedPhone === normalizePhone(ADMIN_PHONE_RAW)) {
-    const token = crypto.randomBytes(32).toString('hex');
-    setUserSession(token, { phone: normalizedPhone, name: ADMIN_USER });
-    res.setHeader('Set-Cookie', `userSession=${token}; ${USER_COOKIE_OPTS}`);
-    return res.json({ success: true, name: ADMIN_USER });
-  }
-
   res.status(401).json({ error: 'מספר הטלפון לא נמצא במערכת. אנא הרשם תחילה.' });
 });
 
@@ -354,7 +361,7 @@ app.get('/api/me', (req, res) => {
   const plates = Object.entries(drivers)
     .filter(([, d]) => d.phone === user.phone)
     .map(([plate]) => plate);
-  res.json({ phone: user.phone, name: user.name, plates });
+  res.json({ phone: user.phone, name: user.name, plates, isAdmin: isAdmin(req) });
 });
 
 app.post('/api/logout', (req, res) => {
@@ -364,7 +371,7 @@ app.post('/api/logout', (req, res) => {
 });
 
 app.get('/api/admin-check', (req, res) => {
-  res.json({ isAdmin: isAdminAuth(req) });
+  res.json({ isAdmin: isAdmin(req) });
 });
 
 app.get('/api/inbox', (req, res) => {
@@ -376,10 +383,26 @@ app.get('/api/inbox', (req, res) => {
       .filter(([, d]) => d.phone === user.phone)
       .map(([plate]) => plate)
   );
-  const messages = loadMessages()
-    .filter(m => myPlates.has(m.plate) || m.recipientPhone === user.phone)
-    .reverse();
-  res.json(messages);
+  const all = loadMessages().filter(m =>
+    myPlates.has(m.plate) ||          // received as driver
+    m.senderPhone === user.phone ||   // sent by user
+    m.recipientPhone === user.phone   // reply addressed to user
+  );
+
+  // Group into threads keyed by threadId (fallback to id)
+  const threadMap = new Map();
+  for (const m of all) {
+    const key = m.threadId || m.id;
+    if (!threadMap.has(key)) threadMap.set(key, []);
+    threadMap.get(key).push(m);
+  }
+
+  // Sort messages within each thread chronologically; sort threads by latest message
+  const threads = [...threadMap.values()]
+    .map(msgs => msgs.sort((a, b) => new Date(a.sentAt) - new Date(b.sentAt)))
+    .sort((a, b) => new Date(b[b.length - 1].sentAt) - new Date(a[a.length - 1].sentAt));
+
+  res.json({ userPhone: user.phone, threads });
 });
 
 app.get('/api/profile', (req, res) => {
@@ -571,6 +594,7 @@ app.post('/api/notify', (req, res) => {
   const msgs = loadMessages();
   msgs.push({
     id:          msgId,
+    threadId:    msgId,
     replyToken,
     plate:       normalizedPlate,
     message,
@@ -642,6 +666,22 @@ app.get('/api/reply', (req, res) => {
   if (!msg) return res.status(404).json({ error: 'הודעה לא נמצאה או שהקישור פג תוקף' });
   const drivers    = loadDrivers();
   const driverPhone = drivers[msg.plate] ? drivers[msg.plate].phone : null;
+
+  // Build thread history
+  const threadKey = msg.threadId || msg.id;
+  const thread = loadMessages()
+    .filter(m => (m.threadId || m.id) === threadKey)
+    .sort((a, b) => new Date(a.sentAt) - new Date(b.sentAt))
+    .map(m => ({
+      id:          m.id,
+      message:     m.message,
+      imageFile:   m.imageFile || null,
+      sentAt:      m.sentAt,
+      isReply:     !!m.isReply,
+      revealPhone: !!m.revealPhone,
+      senderPhone: m.revealPhone ? m.senderPhone : null,
+    }));
+
   res.json({
     plate:        msg.plate,
     message:      msg.message,
@@ -650,6 +690,7 @@ app.get('/api/reply', (req, res) => {
     revealPhone:  !!msg.revealPhone,
     senderPhone:  msg.revealPhone ? msg.senderPhone : null,
     driverPhone,
+    thread,
   });
 });
 
@@ -666,13 +707,15 @@ app.post('/api/reply', (req, res) => {
   const driverName  = drivers[msg.plate] ? drivers[msg.plate].name  : null;
 
   // Save reply into messages so it appears in original sender's inbox
+  const threadId = msg.threadId || msg.id;   // keep thread chain
   const replyEntry = {
     id:             crypto.randomBytes(16).toString('hex'),
+    threadId,
     plate:          msg.plate,
     message:        String(message).trim().slice(0, 1000),
     senderPhone:    driverPhone,
     revealPhone:    !!driverPhone,
-    recipientPhone: msg.senderPhone,   // route to original sender
+    recipientPhone: msg.senderPhone,
     isReply:        true,
     replyToken:     crypto.randomBytes(24).toString('hex'),
     sentAt:         new Date().toISOString(),
@@ -691,5 +734,5 @@ app.post('/api/reply', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Cartel running at http://localhost:${PORT}`);
-  console.log(`Admin: http://localhost:${PORT}/admin  (${ADMIN_USER} / ${ADMIN_PASS})`);
+  console.log(`Admin dashboard: http://localhost:${PORT}/admin  (phone-based access)`);
 });

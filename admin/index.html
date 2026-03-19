@@ -9,7 +9,7 @@
   <body>
     <header class="admin-header">
       <a href="/" class="header-brand" style="text-decoration:none;color:inherit">
-        <strong>CarTel</strong>
+        <strong><svg class="logo-icon" viewBox="0 0 36 43" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M18,43 L12,33 A17,17 0,1,1 24,33 Z M7,11 H29 V15 H7 Z M9,19 H27 V23 H9 Z"/></svg>CarTel</strong>
         <span>ממשק ניהול</span>
       </a>
       <div class="header-stats">
@@ -153,6 +153,37 @@
         </div>
       </section>
 
+      <!-- Admins -->
+      <section class="admin-section">
+        <div class="section-head">
+          <h2>🔑 מנהלי מערכת</h2>
+          <span class="section-count" id="adminCount"></span>
+        </div>
+        <div style="margin-bottom:0.75rem;display:flex;gap:0.5rem">
+          <input type="tel" id="newAdminPhone" placeholder="050-000-0000 (מספר טלפון מאומת)"
+            dir="ltr" style="flex:1;padding:0.5rem 0.75rem;border:1px solid var(--border);
+            border-radius:6px;font-family:inherit;font-size:0.88rem" />
+          <button class="btn-del" style="background:#dbeafe;color:#1d4ed8;border-color:#93c5fd"
+            onclick="grantAdmin()">הענק הרשאה</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>שם</th>
+                <th>טלפון</th>
+                <th>הוענק ע"י</th>
+                <th>תאריך</th>
+                <th>פעולות</th>
+              </tr>
+            </thead>
+            <tbody id="adminsBody">
+              <tr><td colspan="5" class="td-empty">טוען...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
     </main>
 
     <script>
@@ -206,25 +237,28 @@
 
       async function load() {
         try {
-          const [dr, mr, rr, br, cr] = await Promise.all([
+          const [dr, mr, rr, br, cr, ar] = await Promise.all([
             fetch('/admin/api/drivers'),
             fetch('/admin/api/messages'),
             fetch('/admin/api/reports'),
             fetch('/admin/api/banned'),
             fetch('/admin/api/contacts'),
+            fetch('/admin/api/admins'),
           ]);
-          if (dr.status === 401) { window.location.href = '/admin/login'; return; }
+          if (dr.status === 401) { window.location.href = '/'; return; }
 
           _drivers  = await dr.json();
           _messages = await mr.json();
           const reports  = await rr.json();
           const banned   = await br.json();
           const contacts = await cr.json();
+          const admins   = await ar.json();
 
           applySearch(document.getElementById('searchInput').value);
           renderReports(reports);
           renderBanned(banned);
           renderContacts(contacts);
+          renderAdmins(admins);
 
           const dc  = Object.keys(_drivers).length;
           const mc  = _messages.length;
@@ -385,8 +419,41 @@
       }
 
       async function logout() {
-        await fetch('/admin/api/logout', { method: 'POST' });
-        window.location.href = '/admin/login';
+        await fetch('/api/logout', { method: 'POST' });
+        window.location.href = '/';
+      }
+
+      function renderAdmins(admins) {
+        const tbody = document.getElementById('adminsBody');
+        document.getElementById('adminCount').textContent = admins.length;
+        if (!admins.length) {
+          tbody.innerHTML = '<tr><td colspan="5" class="td-empty">אין מנהלים</td></tr>';
+          return;
+        }
+        tbody.innerHTML = admins.map(a => `
+          <tr>
+            <td>${esc(a.name)}</td>
+            <td dir="ltr" style="text-align:right;font-weight:700">${esc(a.phone)}</td>
+            <td dir="ltr" style="text-align:right;font-size:0.82rem">${esc(a.grantedBy)}</td>
+            <td>${fmtDate(a.grantedAt)}</td>
+            <td><button class="btn-del" onclick="revokeAdmin('${esc(a.phone)}')">בטל הרשאה</button></td>
+          </tr>
+        `).join('');
+      }
+
+      async function grantAdmin() {
+        const raw = document.getElementById('newAdminPhone').value.trim();
+        if (!raw) return alert('יש להזין מספר טלפון');
+        const res = await fetch(`/admin/api/admins/${encodeURIComponent(raw)}`, { method: 'POST' });
+        if (res.ok) { document.getElementById('newAdminPhone').value = ''; load(); }
+        else alert((await res.json()).error || 'שגיאה');
+      }
+
+      async function revokeAdmin(phone) {
+        if (!confirm(`לבטל הרשאת מנהל מ-${phone}?`)) return;
+        const res = await fetch(`/admin/api/admins/${encodeURIComponent(phone)}`, { method: 'DELETE' });
+        if (res.ok) load();
+        else alert((await res.json()).error || 'שגיאה');
       }
 
       load();

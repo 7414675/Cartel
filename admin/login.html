@@ -2,73 +2,10 @@
 <html lang="he" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cartel Admin - כניסה</title>
-    <link rel="stylesheet" href="/admin/admin.css" />
+    <meta http-equiv="refresh" content="0;url=/" />
+    <title>CarTel Admin</title>
   </head>
-  <body class="login-page">
-    <div class="login-card">
-      <div class="login-brand">
-        <h1>CarTel</h1>
-        <p>ממשק ניהול</p>
-      </div>
-
-      <form id="loginForm">
-        <div class="form-group">
-          <label for="username">שם משתמש</label>
-          <input type="text" id="username" autocomplete="username" required autofocus />
-        </div>
-        <div class="form-group">
-          <label for="password">סיסמה</label>
-          <div style="position:relative">
-            <input type="password" id="password" autocomplete="current-password" required style="width:100%;padding-left:2.5rem" />
-            <button type="button" id="togglePassword"
-              style="position:absolute;left:0.6rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:#64748b;font-size:1rem">
-              👁
-            </button>
-          </div>
-        </div>
-        <button type="submit" id="loginBtn">כניסה</button>
-        <p id="errorBox" class="login-error"></p>
-      </form>
-    </div>
-
-    <script>
-      document.getElementById('togglePassword').addEventListener('click', () => {
-        const pwd = document.getElementById('password');
-        pwd.type = pwd.type === 'password' ? 'text' : 'password';
-      });
-
-      document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn      = document.getElementById('loginBtn');
-        const errorBox = document.getElementById('errorBox');
-        btn.disabled      = true;
-        btn.textContent   = 'מתחבר...';
-        errorBox.textContent = '';
-
-        try {
-          const res  = await fetch('/admin/api/login', {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({
-              username: document.getElementById('username').value,
-              password: document.getElementById('password').value,
-            }),
-          });
-          const data = await res.json();
-          if (res.ok) {
-            window.location.href = '/admin';
-          } else {
-            errorBox.textContent = data.error;
-          }
-        } catch {
-          errorBox.textContent = 'שגיאת רשת. נסה שוב.';
-        }
-
-        btn.disabled    = false;
-        btn.textContent = 'כניסה';
-      });
-    </script>
+  <body>
+    <script>window.location.replace('/');</script>
   </body>
 </html>

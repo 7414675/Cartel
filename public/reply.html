@@ -9,13 +9,13 @@
       .reply-mode-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 0.75rem;
-        margin: 1.25rem 0;
+        gap: 0.4rem;
+        margin: 0.75rem 0;
       }
       .reply-mode-btn {
-        padding: 1rem 0.75rem;
-        border-radius: 10px;
-        border: 2px solid var(--border);
+        padding: 0.4rem 0.5rem;
+        border-radius: 8px;
+        border: 1px solid var(--border);
         background: white;
         cursor: pointer;
         font-family: inherit;
@@ -23,28 +23,41 @@
         transition: border-color 0.2s, background 0.2s;
       }
       .reply-mode-btn:hover { border-color: var(--primary); background: #fff7ed; }
-      .reply-mode-btn .mode-icon { font-size: 1.8rem; display: block; margin-bottom: 0.4rem; }
-      .reply-mode-btn .mode-title { font-weight: 700; font-size: 0.9rem; display: block; }
-      .reply-mode-btn .mode-desc  { font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.2rem; line-height: 1.4; }
+      .reply-mode-btn .mode-icon { font-size: 0.95rem; display: block; margin-bottom: 0.15rem; }
+      .reply-mode-btn .mode-title { font-weight: 700; font-size: 0.72rem; display: block; }
+      .reply-mode-btn .mode-desc  { font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 0.1rem; line-height: 1.3; }
       .reply-mode-btn.public-btn  { border-color: #fbbf24; }
       .reply-mode-btn.public-btn:hover { background: #fffbeb; }
-      .msg-bubble {
-        background: #f1f5f9;
-        border-right: 4px solid var(--primary);
-        border-radius: 8px;
-        padding: 0.85rem 1rem;
+      /* ── Thread history ─────────────────────────────────── */
+      .thread-history {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--bg);
+        max-height: 260px;
+        overflow-y: auto;
+        padding: 0.75rem;
         margin: 1rem 0;
-        font-size: 0.92rem;
-        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        scroll-behavior: smooth;
       }
-      .msg-bubble .bubble-label {
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.3rem;
+      .th-bubble-row { display: flex; flex-direction: column; max-width: 78%; }
+      .th-bubble-row.from-sender { align-self: flex-end; align-items: flex-end; }
+      .th-bubble-row.from-driver { align-self: flex-start; align-items: flex-start; }
+      .th-bubble {
+        padding: 0.55rem 0.85rem;
+        border-radius: 12px;
+        font-size: 0.88rem;
+        line-height: 1.5;
+        word-break: break-word;
+        white-space: pre-wrap;
       }
+      .th-bubble-row.from-sender .th-bubble { background: #f1f5f9; border-bottom-left-radius: 4px; }
+      .th-bubble-row.from-driver .th-bubble { background: var(--primary); color: white; border-bottom-right-radius: 4px; }
+      .th-bubble-time { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.15rem; padding: 0 0.2rem; }
+      .th-bubble-highlight .th-bubble { outline: 2px solid var(--primary); outline-offset: 2px; }
+
       .msg-image { margin-top: 0.75rem; }
       .msg-image img { max-width: 100%; border-radius: 6px; }
       .wa-reply-btn {
@@ -81,29 +94,29 @@
       .reply-sub-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 0.75rem;
-        margin: 1rem 0;
+        gap: 0.4rem;
+        margin: 0.5rem 0;
       }
       .reply-sub-btn {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 0.9rem 0.5rem;
-        border-radius: 10px;
-        border: 2px solid var(--border);
+        padding: 0.4rem 0.5rem;
+        border-radius: 8px;
+        border: 1px solid var(--border);
         background: white;
         cursor: pointer;
         font-family: inherit;
         text-align: center;
         text-decoration: none;
         transition: border-color 0.2s, background 0.2s;
-        gap: 0.25rem;
+        gap: 0.1rem;
       }
       .reply-sub-btn:hover { border-color: var(--primary); background: #fff7ed; }
-      .reply-sub-btn .mode-icon  { font-size: 1.6rem; }
-      .reply-sub-btn .mode-title { font-weight: 700; font-size: 0.88rem; color: var(--text); }
-      .reply-sub-btn .mode-desc  { font-size: 0.72rem; color: var(--text-muted); line-height: 1.4; }
+      .reply-sub-btn .mode-icon  { font-size: 0.95rem; }
+      .reply-sub-btn .mode-title { font-weight: 700; font-size: 0.72rem; color: var(--text); }
+      .reply-sub-btn .mode-desc  { font-size: 0.65rem; color: var(--text-muted); line-height: 1.3; }
       .wa-sub-btn { border-color: #25D366; color: inherit; }
       .wa-sub-btn:hover { background: #f0fdf4; border-color: #1ebe5c; }
       #publicAppReplySection { margin-top: 1rem; }
@@ -113,8 +126,8 @@
     <header>
       <div class="header-inner">
         <div>
-          <h1><a href="/" style="color:inherit;text-decoration:none">CarTel</a></h1>
-          <p>text the plate</p>
+          <h1><a href="/" style="color:inherit;text-decoration:none"><svg class="logo-icon" viewBox="0 0 36 43" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M18,43 L12,33 A17,17 0,1,1 24,33 Z M7,11 H29 V15 H7 Z M9,19 H27 V23 H9 Z"/></svg>CarTel</a></h1>
+          <p>text-the-plate</p>
         </div>
         <div class="header-nav">
           <a href="inbox.html" class="header-icon" title="תיבת הדואר">📬</a>
@@ -131,13 +144,7 @@
       <div class="card" id="mainCard" style="display:none">
         <h2>קיבלת הודעה לגבי רכבך</h2>
 
-        <div class="msg-bubble" id="msgBubble">
-          <div class="bubble-label">ההודעה שנשלחה</div>
-          <div id="msgText"></div>
-          <div id="msgImageWrap" class="msg-image" style="display:none">
-            <img id="msgImage" src="" alt="תמונה מצורפת" />
-          </div>
-        </div>
+        <div class="thread-history" id="threadHistory"></div>
 
         <p class="subtitle">כיצד ברצונך להגיב?</p>
 
@@ -167,7 +174,7 @@
                 <span class="mode-desc">שלח הודעה דרך Cartel</span>
               </button>
               <a id="waPublicLink" href="#" class="reply-sub-btn wa-sub-btn" target="_blank" rel="noopener noreferrer">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#25D366" style="flex-shrink:0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#25D366" style="flex-shrink:0">
                   <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
                   <path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.554 4.103 1.523 5.828L.057 23.5l5.797-1.522A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.002-1.371l-.359-.214-3.721.976.993-3.63-.233-.373A9.818 9.818 0 1 1 12 21.818z"/>
                 </svg>
@@ -222,6 +229,14 @@
         <h3>כתוב אלינו</h3>
         <p>שלח הודעה לצוות CarTel — נחזור אליך בהקדם</p>
         <div class="form-group">
+          <label for="contactName">שם <span class="optional-tag">אופציונלי</span></label>
+          <input type="text" id="contactName" placeholder="ישראל ישראלי" maxlength="50" autocomplete="name" />
+        </div>
+        <div class="form-group">
+          <label for="contactPhone">טלפון <span class="optional-tag">אופציונלי</span></label>
+          <input type="tel" id="contactPhone" placeholder="050-000-0000" maxlength="15" dir="ltr" style="text-align:right" autocomplete="tel" />
+        </div>
+        <div class="form-group">
           <label for="contactMsg">הודעתך</label>
           <textarea id="contactMsg" placeholder="כתוב כאן..." maxlength="1000"></textarea>
         </div>
@@ -233,10 +248,24 @@
       </div>
     </div>
     <script>
-      function openContact()  { document.getElementById('contactOverlay').classList.add('open'); }
+      function openContact() {
+        document.getElementById('contactOverlay').classList.add('open');
+        // Pre-fill name/phone for logged-in users
+        fetch('/api/me').then(r => r.ok ? r.json() : null).then(me => {
+          if (!me) return;
+          const n = document.getElementById('contactName');
+          const p = document.getElementById('contactPhone');
+          if (me.name  && !n.value) { n.value = me.name;  n.disabled = true; }
+          if (me.phone && !p.value) { p.value = me.phone; p.disabled = true; }
+        }).catch(()=>{});
+      }
       function closeContact() {
         document.getElementById('contactOverlay').classList.remove('open');
         document.getElementById('contactMsg').value = '';
+        const cn = document.getElementById('contactName');
+        const cp = document.getElementById('contactPhone');
+        cn.value = ''; cn.disabled = false;
+        cp.value = ''; cp.disabled = false;
         const a = document.getElementById('contactAlert');
         a.className = 'alert'; a.textContent = '';
       }
@@ -250,7 +279,11 @@
           const res = await fetch('/api/contact', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: msg }),
+            body: JSON.stringify({
+            message: msg,
+            name: document.getElementById('contactName').value.trim(),
+            phone: document.getElementById('contactPhone').value.trim(),
+          }),
           });
           if (res.ok) {
             alertBox.className = 'alert success';
@@ -286,15 +319,41 @@
         }
       }
 
+      function formatTime(iso) {
+        const d    = new Date(iso);
+        const diff = Date.now() - d;
+        const mins  = Math.floor(diff / 60000);
+        const hours = Math.floor(mins / 60);
+        const days  = Math.floor(hours / 24);
+        if (days > 6)  return d.toLocaleDateString('he-IL');
+        if (days > 0)  return `לפני ${days} ימים`;
+        if (hours > 0) return `לפני ${hours} שעות`;
+        if (mins > 0)  return `לפני ${mins} דקות`;
+        return 'עכשיו';
+      }
+
+      function renderThread(thread, currentMsg) {
+        const container = document.getElementById('threadHistory');
+        container.innerHTML = (thread && thread.length ? thread : [currentMsg]).map(m => {
+          const side = m.isReply ? 'from-driver' : 'from-sender';
+          const isCurrent = (m.message === currentMsg.message && m.sentAt === currentMsg.sentAt);
+          const imgHtml = m.imageFile
+            ? `<div class="msg-image"><a href="/images/${m.imageFile}" target="_blank"><img src="/images/${m.imageFile}" alt="תמונה" /></a></div>`
+            : '';
+          return `
+            <div class="th-bubble-row ${side}${isCurrent ? ' th-bubble-highlight' : ''}">
+              <div class="th-bubble">${m.message.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}${imgHtml}</div>
+              <div class="th-bubble-time">${formatTime(m.sentAt)}</div>
+            </div>`;
+        }).join('');
+        // Scroll to bottom so latest message is visible
+        container.scrollTop = container.scrollHeight;
+      }
+
       function render(data) {
         document.getElementById('loadingCard').style.display = 'none';
         document.getElementById('mainCard').style.display   = 'block';
-        document.getElementById('msgText').textContent      = data.message;
-
-        if (data.imageFile) {
-          document.getElementById('msgImageWrap').style.display = 'block';
-          document.getElementById('msgImage').src = '/images/' + data.imageFile;
-        }
+        renderThread(data.thread, data);
 
         // Public reply button
         document.getElementById('publicBtn').addEventListener('click', () => {

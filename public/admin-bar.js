@@ -1,6 +1,6 @@
 (async () => {
   try {
-    const r = await fetch('/api/admin-check');
+    const r = await fetch('/api/me');
     if (!r.ok) return;
     const d = await r.json();
     if (!d.isAdmin) return;
@@ -27,6 +27,17 @@
   const isHome     = p === '/' || (p.endsWith('/index.html') && !p.includes('/admin/'));
   const isRegister = p.endsWith('/register.html');
   const isAdmin    = p === '/admin' || p === '/admin/' || p.startsWith('/admin/index');
+
+  // Inject dashboard icon into header nav
+  const headerNav = document.querySelector('.header-nav');
+  if (headerNav) {
+    const adminLink = document.createElement('a');
+    adminLink.href = '/admin';
+    adminLink.className = 'header-icon';
+    adminLink.title = 'לוח בקרה';
+    adminLink.textContent = '📊';
+    headerNav.insertBefore(adminLink, headerNav.firstChild);
+  }
 
   const bar = document.createElement('nav');
   bar.className = 'admin-float-bar';
