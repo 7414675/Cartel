@@ -616,7 +616,7 @@ app.post('/api/notify', (req, res) => {
   });
   saveMessages(msgs);
 
-  const replyUrl = `${process.env.APP_URL || `http://localhost:${PORT}`}/reply?token=${replyToken}`;
+  const replyUrl = `${process.env.APP_URL || `http://localhost:${PORT}`}/reply.html?token=${replyToken}`;
   let smsBody = `הודעה חדשה ברכבך (${normalizedPlate}):\n"${message}"`;
   if (revealPhone) smsBody += `\nמספר השולח: ${user.phone}`;
   smsBody += `\nלתגובה: ${replyUrl}`;
