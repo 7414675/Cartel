@@ -32,7 +32,7 @@ const CONTACTS_FILE   = path.join(DATA_DIR, 'contacts.json');
 const ADMINS_FILE     = path.join(DATA_DIR, 'admins.json');
 const UPLOADS_DIR     = path.join(DATA_DIR, 'uploads');
 
-[DATA_DIR, UPLOADS_DIR].forEach(d => { if (!fs.existsSync(d)) fs.mkdirSync(d); });
+[DATA_DIR, UPLOADS_DIR].forEach(d => { if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); });
 if (!fs.existsSync(DRIVERS_FILE))  fs.writeFileSync(DRIVERS_FILE,  '{}');
 if (!fs.existsSync(MESSAGES_FILE)) fs.writeFileSync(MESSAGES_FILE, '[]');
 if (!fs.existsSync(SENDERS_FILE))  fs.writeFileSync(SENDERS_FILE,  '{}');
@@ -42,6 +42,17 @@ if (!fs.existsSync(REPORTS_FILE))  fs.writeFileSync(REPORTS_FILE,  '[]');
 if (!fs.existsSync(BANNED_FILE))    fs.writeFileSync(BANNED_FILE,    '{}');
 if (!fs.existsSync(CONTACTS_FILE)) fs.writeFileSync(CONTACTS_FILE, '[]');
 if (!fs.existsSync(ADMINS_FILE))   fs.writeFileSync(ADMINS_FILE,   '{}');
+
+// Auto-seed admin from ADMIN_PHONE env var
+if (process.env.ADMIN_PHONE) {
+  const admins = JSON.parse(fs.readFileSync(ADMINS_FILE));
+  const adminPhone = process.env.ADMIN_PHONE;
+  if (!admins[adminPhone]) {
+    admins[adminPhone] = { grantedAt: new Date().toISOString(), grantedBy: 'system' };
+    fs.writeFileSync(ADMINS_FILE, JSON.stringify(admins));
+    console.log(`[Admin] Seeded admin: ${adminPhone}`);
+  }
+}
 
 // ── Sessions ──────────────────────────────────────────────────────
 const pendingRegistrations = new Map(); // phone → { name, plate, otp, expiresAt }
