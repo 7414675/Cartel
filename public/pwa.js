@@ -7,11 +7,13 @@ if ('serviceWorker' in navigator) {
 (function () {
   if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) return;
 
-  const DISMISSED_KEY = 'pwa-dismissed';
+  const DISMISSED_KEY = 'pwa-dismissed-v2';
   const dismissed = localStorage.getItem(DISMISSED_KEY);
   if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
 
-  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  // Detect iOS including newer iPads that report as Macintosh
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
   const style = `
     #pwa-banner {
