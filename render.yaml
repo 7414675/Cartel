@@ -4,13 +4,7 @@ services:
     runtime: node
     buildCommand: npm install
     startCommand: node server.js
-    disk:
-      name: cartel-data
-      mountPath: /data
-      sizeGB: 1
     envVars:
-      - key: DATA_DIR
-        value: /data
       - key: NODE_ENV
         value: production
       - key: ADMIN_PHONE
