@@ -16,13 +16,14 @@ if ('serviceWorker' in navigator) {
 
   const style = `
     #pwa-bar {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 99999;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 99999;
       background: #ea580c; color: white;
       padding: 0.7rem 1rem;
       display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
       font-family: "Segoe UI", Arial, sans-serif;
       font-size: 0.88rem; direction: rtl;
-      box-shadow: 0 -2px 12px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
     }
     #pwa-bar .pwa-bar-content {
       display: flex; align-items: center; gap: 0.6rem; flex: 1;
@@ -53,7 +54,7 @@ if ('serviceWorker' in navigator) {
     localStorage.setItem(DISMISSED_KEY, Date.now());
     const b = document.getElementById('pwa-bar');
     if (b) b.remove();
-    document.body.style.paddingBottom = '';
+    document.body.style.paddingTop = '';
   }
 
   function showBar(deferredPrompt) {
@@ -92,8 +93,8 @@ if ('serviceWorker' in navigator) {
     const styleEl = document.createElement('style');
     styleEl.textContent = style;
     document.head.appendChild(styleEl);
-    document.body.appendChild(el);
-    document.body.style.paddingBottom = '60px';
+    document.body.insertBefore(el, document.body.firstChild);
+    document.body.style.paddingTop = (parseInt(document.body.style.paddingTop || 0) + 56) + 'px';
 
     document.getElementById('pwa-bar-close').addEventListener('click', dismiss);
 
