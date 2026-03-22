@@ -17,7 +17,7 @@ if ('serviceWorker' in navigator) {
 
   const style = `
     #pwa-banner {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 99998;
+      position: fixed; bottom: 60px; left: 0; right: 0; z-index: 99999;
       background: #7c2d12; color: white;
       padding: 0.85rem 1rem;
       display: flex; align-items: center; gap: 0.75rem;
@@ -27,7 +27,7 @@ if ('serviceWorker' in navigator) {
       animation: bannerIn 0.35s ease;
     }
     @keyframes bannerIn { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    #pwa-banner img { width: 40px; height: 40px; border-radius: 9px; flex-shrink: 0; }
+    #pwa-banner .pwa-icon { width: 44px; height: 44px; border-radius: 10px; background: white; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; }
     #pwa-banner .pwa-text { flex: 1; }
     #pwa-banner .pwa-text strong { display: block; font-size: 0.95rem; }
     #pwa-banner .pwa-text span { opacity: 0.85; }
@@ -65,7 +65,7 @@ if ('serviceWorker' in navigator) {
       : '';
 
     el.innerHTML = `
-      <img src="/icon.svg" alt="CarTel" />
+      <div class="pwa-icon">🚗</div>
       <div class="pwa-text">
         <strong>CarTel</strong>
         <span>שמור אותנו על המסך שלך לגישה מהירה</span>
