@@ -3,6 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#ea580c" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
     <title>Cartel - הרשמה</title>
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -11,7 +14,7 @@
       <div class="header-inner">
         <div>
           <h1><a href="/" style="color:inherit;text-decoration:none"><svg class="logo-icon" viewBox="0 0 36 43" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M18,43 L12,33 A17,17 0,1,1 24,33 Z M7,11 H29 V15 H7 Z M9,19 H27 V23 H9 Z"/></svg>CarTel</a></h1>
-          <p>text-the-plate</p>
+          <p>text | the | plate</p>
         </div>
         <div class="header-nav">
           <a href="inbox.html" class="header-icon" title="תיבת הדואר">📬</a>
@@ -301,5 +304,6 @@
         alertBox.textContent = '';
       });
     </script>
-  </body>
+  <script src="/pwa.js"></script>
+</body>
 </html>

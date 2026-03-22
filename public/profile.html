@@ -3,6 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#ea580c" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
     <title>Cartel - הגדרות פרופיל</title>
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -11,7 +14,7 @@
       <div class="header-inner">
         <div>
           <h1><a href="/" style="color:inherit;text-decoration:none"><svg class="logo-icon" viewBox="0 0 36 43" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M18,43 L12,33 A17,17 0,1,1 24,33 Z M7,11 H29 V15 H7 Z M9,19 H27 V23 H9 Z"/></svg>CarTel</a></h1>
-          <p>text-the-plate</p>
+          <p>text | the | plate</p>
         </div>
         <div class="header-nav">
           <a href="inbox.html" class="header-icon" title="תיבת הדואר">📬</a>
@@ -27,7 +30,19 @@
         <div id="authState" style="display:none">
           <div class="auth-gate">
             <p class="auth-gate-msg">עליך להיות מחובר כדי לערוך את הפרופיל</p>
-            <a href="/" class="btn-register">חזרה לדף הבית &larr;</a>
+            <a href="register.html" class="btn-register">הירשם עכשיו &larr;</a>
+            <button type="button" class="auth-toggle-btn" id="showLoginBtn" style="margin-top:8rem;">
+              כבר רשום? התחבר
+            </button>
+            <div id="inlineLoginForm" style="display:none">
+              <div class="form-group" style="margin-top:0.75rem">
+                <label for="loginPhone">מספר טלפון</label>
+                <input type="tel" id="loginPhone" placeholder="050-000-0000"
+                  dir="ltr" style="text-align:right" />
+              </div>
+              <button type="button" id="loginSubmitBtn" style="margin-top:0.5rem;width:100%;padding:0.65rem 1rem;background:var(--primary);color:white;border:none;border-radius:8px;font-size:0.95rem;font-weight:700;font-family:inherit;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='var(--primary-dark)'" onmouseout="this.style.background='var(--primary)'">התחבר</button>
+              <p id="loginError" class="field-hint" style="color:var(--error);min-height:1.2em"></p>
+            </div>
           </div>
         </div>
 
@@ -224,6 +239,36 @@
 
       document.getElementById('ownershipCheck').addEventListener('change', updateSaveBtn);
 
+      document.getElementById('showLoginBtn').addEventListener('click', () => {
+        const f = document.getElementById('inlineLoginForm');
+        f.style.display = f.style.display === 'none' ? 'block' : 'none';
+      });
+
+      document.getElementById('loginPhone').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('loginSubmitBtn').click(); });
+      document.getElementById('loginSubmitBtn').addEventListener('click', async () => {
+        const phone = document.getElementById('loginPhone').value.trim();
+        const errEl = document.getElementById('loginError');
+        errEl.textContent = '';
+        const btn = document.getElementById('loginSubmitBtn');
+        btn.disabled = true; btn.textContent = 'מתחבר...';
+        try {
+          const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone }),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            window.location.reload();
+          } else {
+            errEl.textContent = data.error;
+          }
+        } catch {
+          errEl.textContent = 'שגיאת רשת. נסה שוב.';
+        }
+        btn.disabled = false; btn.textContent = 'התחבר';
+      });
+
       async function init() {
         try {
           const res = await fetch('/api/profile');
@@ -309,5 +354,6 @@
 
       init();
     </script>
-  </body>
+  <script src="/pwa.js"></script>
+</body>
 </html>

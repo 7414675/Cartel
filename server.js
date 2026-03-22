@@ -20,7 +20,7 @@ const app  = express();
 const PORT = process.env.PORT || 3000;
 
 // ── File paths ────────────────────────────────────────────────────
-const DATA_DIR        = path.join(__dirname, 'data');
+const DATA_DIR        = process.env.DATA_DIR || path.join(__dirname, 'data');
 const DRIVERS_FILE    = path.join(DATA_DIR, 'drivers.json');
 const MESSAGES_FILE   = path.join(DATA_DIR, 'messages.json');
 const SENDERS_FILE    = path.join(DATA_DIR, 'senders.json');

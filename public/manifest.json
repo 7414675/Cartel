@@ -1,0 +1,21 @@
+{
+  "name": "CarTel",
+  "short_name": "CarTel",
+  "description": "שלח הודעה לנהג",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#7c2d12",
+  "theme_color": "#ea580c",
+  "lang": "he",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
