@@ -46,7 +46,7 @@ if (!fs.existsSync(ADMINS_FILE))   fs.writeFileSync(ADMINS_FILE,   '{}');
 // Auto-seed admin from ADMIN_PHONE env var
 if (process.env.ADMIN_PHONE) {
   const admins = JSON.parse(fs.readFileSync(ADMINS_FILE));
-  const adminPhone = process.env.ADMIN_PHONE;
+  const adminPhone = normalizePhone(process.env.ADMIN_PHONE);
   if (!admins[adminPhone]) {
     admins[adminPhone] = { grantedAt: new Date().toISOString(), grantedBy: 'system' };
     fs.writeFileSync(ADMINS_FILE, JSON.stringify(admins));
