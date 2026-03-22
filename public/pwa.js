@@ -63,10 +63,12 @@ if ('serviceWorker' in navigator) {
     if (isIOS) {
       el.innerHTML = `
         <div class="pwa-bar-content">
-          <span class="pwa-bar-icon"></span>
+          <span class="pwa-bar-icon">
+            <svg width="24" height="24" viewBox="0 0 814 1000" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.5 135.4-317.3 269-317.3 71 0 130.5 46.4 174.9 46.4 42.7 0 109.2-49 192.5-49 31 0 108.2 2.6 168.1 80.6zm-196.6-81.5c31.7-37.5 54.2-89.7 54.2-141.9 0-7.1-.6-14.3-1.9-20.1-51.6 1.9-112.3 34.4-149.3 75.6-28.5 32.4-55.1 84.7-55.1 137.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 46.4 0 102.5-31.1 136.6-70.5z"/></svg>
+          </span>
           <div class="pwa-bar-text">
-            <strong>הוסף למסך הבית</strong>
-            <span>לחץ על <strong>📤</strong> ואז "הוסף למסך הבית"</span>
+            <strong>iOS — הוסף למסך הבית</strong>
+            <span>לחץ על 📤 ואז "הוסף למסך הבית"</span>
           </div>
         </div>
         <button class="pwa-bar-close" id="pwa-bar-close">✕</button>
@@ -74,9 +76,11 @@ if ('serviceWorker' in navigator) {
     } else {
       el.innerHTML = `
         <div class="pwa-bar-content">
-          <span class="pwa-bar-icon">🤖</span>
+          <span class="pwa-bar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M17.523 15.341c-.32 0-.633-.014-.94-.04l-1.538 2.785a8.834 8.834 0 01-3.045 0L10.46 15.3a9.05 9.05 0 01-3.893-2.07l-3.124.593A8.948 8.948 0 013 12c0-.618.064-1.22.185-1.8l2.857-1.564a9.05 9.05 0 010-5.271L3.185 1.8A8.948 8.948 0 013 0h18a8.948 8.948 0 01-.185 1.8L17.957 3.365a9.05 9.05 0 010 5.271l2.857 1.563c.121.58.186 1.182.186 1.801 0 .618-.065 1.22-.186 1.8l-3.124-.593a9.05 9.05 0 01-3.167 1.134zM12 7a5 5 0 100 10A5 5 0 0012 7z"/></svg>
+          </span>
           <div class="pwa-bar-text">
-            <strong>התקן את CarTel</strong>
+            <strong>Android — התקן את CarTel</strong>
             <span>גישה מהירה מהמסך הראשי</span>
           </div>
         </div>
