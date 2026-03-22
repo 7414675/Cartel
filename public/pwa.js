@@ -72,7 +72,7 @@ if ('serviceWorker' in navigator) {
           </span>
           <div class="pwa-bar-text">
             <strong>iOS — שמור אפליקציה</strong>
-            <span>1. לחץ על כפתור השיתוף <strong>📤</strong> בתחתית Safari</span>
+            <span>1. לחץ על כפתור השיתוף <svg style="display:inline;vertical-align:middle" width="16" height="16" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l-4 4h3v8h2V6h3l-4-4zM5 14v4a1 1 0 001 1h12a1 1 0 001-1v-4h-2v3H7v-3H5z"/></svg> בתחתית Safari</span>
             <span>2. בחר <strong>"הוסף למסך הבית"</strong></span>
           </div>
         </div>
