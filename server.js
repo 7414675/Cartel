@@ -12,7 +12,7 @@ async function sendSms(to, body) {
   try {
     await twilio.messages.create({ from: process.env.TWILIO_FROM, to, body });
   } catch (e) {
-    console.error(`[SMS error] ${e.message}`);
+    console.error(`[SMS error] ${e.message} (code: ${e.code}, status: ${e.status})`);
   }
 }
 
