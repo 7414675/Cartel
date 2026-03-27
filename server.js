@@ -623,6 +623,7 @@ app.post('/api/notify', async (req, res) => {
   saveMessages(msgs);
 
   // Send "who we are" intro SMS the very first time a driver receives any message
+  console.log(`[intro check] Plate: ${normalizedPlate} | firstMessageSent: ${drivers[normalizedPlate].firstMessageSent}`);
   if (!drivers[normalizedPlate].firstMessageSent) {
     const introMsg =
       'הי אנחנו אפליקציה חדשה ישראלית שנועדה לעזור לנו לתקשר עם בעלים של כלי רכב. ' +
@@ -630,8 +631,9 @@ app.post('/api/notify', async (req, res) => {
       'מהיום אפשר לסמס ישירות למספר רכב דרך CarTel האפליקציה השיתופית של הנהגים תוצרת כחול לבן. ' +
       'אם קיבלת הודעה אודות רכבך אתה יכול לבחור אם לענות או לא אנונימי או באופן מזוהה. ' +
       'שיהיה בהצלחה ונסיעה נעימה..אוהבים צוות Cartel';
+    console.log(`[SMS intro sending] To: ${driverPhone} | Plate: ${normalizedPlate}`);
     await sendSms(driverPhone, introMsg);
-    console.log(`[SMS intro] To: ${driverPhone} | Plate: ${normalizedPlate}`);
+    console.log(`[SMS intro done] To: ${driverPhone}`);
     drivers[normalizedPlate].firstMessageSent = true;
     saveDrivers(drivers);
   }
