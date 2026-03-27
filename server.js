@@ -96,18 +96,24 @@ function isAdmin(req) {
 }
 
 // ── Data helpers ──────────────────────────────────────────────────
-const load = f => JSON.parse(fs.readFileSync(f, 'utf8'));
-const save = (f, d) => fs.writeFileSync(f, JSON.stringify(d, null, 2));
+const load = f => {
+  try { return JSON.parse(fs.readFileSync(f, 'utf8')); }
+  catch { return {}; }
+};
+const save = (f, d) => {
+  fs.mkdirSync(path.dirname(f), { recursive: true });
+  fs.writeFileSync(f, JSON.stringify(d, null, 2));
+};
 
 const loadDrivers  = () => load(DRIVERS_FILE);
 const saveDrivers  = d  => save(DRIVERS_FILE,  d);
-const loadMessages = () => load(MESSAGES_FILE);
+const loadMessages = () => { const d = load(MESSAGES_FILE); return Array.isArray(d) ? d : []; };
 const saveMessages = m  => save(MESSAGES_FILE, m);
 const loadSenders  = () => load(SENDERS_FILE);
 const saveSenders  = s  => save(SENDERS_FILE,  s);
 const loadBlocks   = () => load(BLOCKS_FILE);
 const saveBlocks   = b  => save(BLOCKS_FILE,   b);
-const loadReports  = () => load(REPORTS_FILE);
+const loadReports  = () => { const d = load(REPORTS_FILE); return Array.isArray(d) ? d : []; };
 const saveReports  = r  => save(REPORTS_FILE,  r);
 const loadBanned    = () => load(BANNED_FILE);
 const saveBanned    = b  => save(BANNED_FILE,    b);

@@ -17,3 +17,9 @@ services:
         sync: false
       - key: APP_URL
         sync: false
+      - key: DATA_DIR
+        value: /data
+disks:
+  - name: cartel-data
+    mountPath: /data
+    sizeGB: 1
