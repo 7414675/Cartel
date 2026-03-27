@@ -619,11 +619,11 @@ app.post('/api/notify', async (req, res) => {
   // Send "who we are" intro SMS the very first time a driver receives any message
   if (!drivers[normalizedPlate].firstMessageSent) {
     const introMsg =
-      'הי אנחנו אפליקציה חדשה ישראלית שנועדה לעזור נו לתקשר עם בעלים של כלי רכב. ' +
+      'הי אנחנו אפליקציה חדשה ישראלית שנועדה לעזור לנו לתקשר עם בעלים של כלי רכב. ' +
       'נחסמת/נחתכת/רצית לקנות/להזהיר/להתריע או סתם להגיד שלום לנהג.ת? ' +
       'מהיום אפשר לסמס ישירות למספר רכב דרך CarTel האפליקציה השיתופית של הנהגים תוצרת כחול לבן. ' +
       'אם קיבלת הודעה אודות רכבך אתה יכול לבחור אם לענות או לא אנונימי או באופן מזוהה. ' +
-      'שיהיה בצלחה ונסיעה נעימה..אוהבים צוות Cartel';
+      'שיהיה בהצלחה ונסיעה נעימה..אוהבים צוות Cartel';
     await sendSms(driverPhone, introMsg);
     console.log(`[SMS intro] To: ${driverPhone} | Plate: ${normalizedPlate}`);
     drivers[normalizedPlate].firstMessageSent = true;
@@ -634,7 +634,7 @@ app.post('/api/notify', async (req, res) => {
   let smsBody = `הודעה חדשה ברכבך (${normalizedPlate}):\n"${message}"`;
   if (revealPhone) smsBody += `\nמספר השולח: ${user.phone}`;
   smsBody += `\nלתגובה: ${replyUrl}`;
-  sendSms(driverPhone, smsBody);
+  await sendSms(driverPhone, smsBody);
   console.log(`[SMS] To: ${driverPhone} | Plate: ${normalizedPlate} | Reply: ${replyUrl}`);
 
   res.json({ success: true, message: 'ההודעה נשלחה לנהג בהצלחה!' });
